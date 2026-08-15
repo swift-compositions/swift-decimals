@@ -37,7 +37,10 @@ extension Decimal.Text where Value == Decimal.Format64 {
         }
 
         if base.test.infinite {
-            let inf: [UInt8] = [UInt8(ascii: "I"), UInt8(ascii: "n"), UInt8(ascii: "f"), UInt8(ascii: "i"), UInt8(ascii: "n"), UInt8(ascii: "i"), UInt8(ascii: "t"), UInt8(ascii: "y")]
+            let inf: [UInt8] = [
+                UInt8(ascii: "I"), UInt8(ascii: "n"), UInt8(ascii: "f"), UInt8(ascii: "i"),
+                UInt8(ascii: "n"), UInt8(ascii: "i"), UInt8(ascii: "t"), UInt8(ascii: "y"),
+            ]
             for byte in inf {
                 buffer[offset] = byte
                 offset += 1
@@ -152,7 +155,11 @@ extension Decimal.Text where Value == Decimal.Format64 {
     }
 
     @usableFromInline
-    internal func writeExponent(_ exp: Int, to buffer: UnsafeMutableBufferPointer<UInt8>, at offset: Int) -> Int {
+    internal func writeExponent(
+        _ exp: Int,
+        to buffer: UnsafeMutableBufferPointer<UInt8>,
+        at offset: Int
+    ) -> Int {
         var off = offset
         if exp >= 0 {
             buffer[off] = UInt8(ascii: "+")
@@ -215,12 +222,20 @@ extension Decimal.Text where Value == Decimal.Format64 {
         var digitCodes: [ASCII.Code] = []
         ASCII.Decimal.Serializer().serialize(coefficient, into: &digitCodes)
 
-        return Self.requiredCapacity(numDigits: digitCodes.count, exponent: exponent.rawValue, style: style)
+        return Self.requiredCapacity(
+            numDigits: digitCodes.count,
+            exponent: exponent.rawValue,
+            style: style
+        )
     }
 
     /// Safe upper bound on rendered byte length given a digit count and exponent, for `style`.
     @usableFromInline
-    internal static func requiredCapacity(numDigits: Int, exponent: Int, style: Decimal.Text.Style) -> Int {
+    internal static func requiredCapacity(
+        numDigits: Int,
+        exponent: Int,
+        style: Decimal.Text.Style
+    ) -> Int {
         let adjustedExponent = exponent + numDigits - 1
         // Bounds the plain-style leading/trailing zero run (see F-001 analysis:
         // trailing-zero count is `exponent` when >= 0, leading-zero count is at
@@ -293,7 +308,10 @@ extension Decimal.Text where Value == Decimal.Format32 {
         }
 
         if base.test.infinite {
-            let inf: [UInt8] = [UInt8(ascii: "I"), UInt8(ascii: "n"), UInt8(ascii: "f"), UInt8(ascii: "i"), UInt8(ascii: "n"), UInt8(ascii: "i"), UInt8(ascii: "t"), UInt8(ascii: "y")]
+            let inf: [UInt8] = [
+                UInt8(ascii: "I"), UInt8(ascii: "n"), UInt8(ascii: "f"), UInt8(ascii: "i"),
+                UInt8(ascii: "n"), UInt8(ascii: "i"), UInt8(ascii: "t"), UInt8(ascii: "y"),
+            ]
             for byte in inf {
                 buffer[offset] = byte
                 offset += 1
@@ -402,7 +420,11 @@ extension Decimal.Text where Value == Decimal.Format32 {
     }
 
     @usableFromInline
-    internal func writeExponent(_ exp: Int, to buffer: UnsafeMutableBufferPointer<UInt8>, at offset: Int) -> Int {
+    internal func writeExponent(
+        _ exp: Int,
+        to buffer: UnsafeMutableBufferPointer<UInt8>,
+        at offset: Int
+    ) -> Int {
         var off = offset
         if exp >= 0 {
             buffer[off] = UInt8(ascii: "+")
@@ -465,12 +487,20 @@ extension Decimal.Text where Value == Decimal.Format32 {
         var digitCodes: [ASCII.Code] = []
         ASCII.Decimal.Serializer().serialize(coefficient, into: &digitCodes)
 
-        return Self.requiredCapacity(numDigits: digitCodes.count, exponent: exponent.rawValue, style: style)
+        return Self.requiredCapacity(
+            numDigits: digitCodes.count,
+            exponent: exponent.rawValue,
+            style: style
+        )
     }
 
     /// Safe upper bound on rendered byte length given a digit count and exponent, for `style`.
     @usableFromInline
-    internal static func requiredCapacity(numDigits: Int, exponent: Int, style: Decimal.Text.Style) -> Int {
+    internal static func requiredCapacity(
+        numDigits: Int,
+        exponent: Int,
+        style: Decimal.Text.Style
+    ) -> Int {
         let adjustedExponent = exponent + numDigits - 1
         let zeroRun = max(exponent, -exponent)
         let exponentDigits = decimalDigitCount(adjustedExponent)
@@ -537,7 +567,10 @@ extension Decimal.Text where Value == Decimal.Format128 {
         }
 
         if base.test.infinite {
-            let inf: [UInt8] = [UInt8(ascii: "I"), UInt8(ascii: "n"), UInt8(ascii: "f"), UInt8(ascii: "i"), UInt8(ascii: "n"), UInt8(ascii: "i"), UInt8(ascii: "t"), UInt8(ascii: "y")]
+            let inf: [UInt8] = [
+                UInt8(ascii: "I"), UInt8(ascii: "n"), UInt8(ascii: "f"), UInt8(ascii: "i"),
+                UInt8(ascii: "n"), UInt8(ascii: "i"), UInt8(ascii: "t"), UInt8(ascii: "y"),
+            ]
             for byte in inf {
                 buffer[offset] = byte
                 offset += 1
@@ -646,7 +679,11 @@ extension Decimal.Text where Value == Decimal.Format128 {
     }
 
     @usableFromInline
-    internal func writeExponent(_ exp: Int, to buffer: UnsafeMutableBufferPointer<UInt8>, at offset: Int) -> Int {
+    internal func writeExponent(
+        _ exp: Int,
+        to buffer: UnsafeMutableBufferPointer<UInt8>,
+        at offset: Int
+    ) -> Int {
         var off = offset
         if exp >= 0 {
             buffer[off] = UInt8(ascii: "+")
@@ -709,12 +746,20 @@ extension Decimal.Text where Value == Decimal.Format128 {
         var digitCodes: [ASCII.Code] = []
         ASCII.Decimal.Serializer().serialize(coefficient, into: &digitCodes)
 
-        return Self.requiredCapacity(numDigits: digitCodes.count, exponent: exponent.rawValue, style: style)
+        return Self.requiredCapacity(
+            numDigits: digitCodes.count,
+            exponent: exponent.rawValue,
+            style: style
+        )
     }
 
     /// Safe upper bound on rendered byte length given a digit count and exponent, for `style`.
     @usableFromInline
-    internal static func requiredCapacity(numDigits: Int, exponent: Int, style: Decimal.Text.Style) -> Int {
+    internal static func requiredCapacity(
+        numDigits: Int,
+        exponent: Int,
+        style: Decimal.Text.Style
+    ) -> Int {
         let adjustedExponent = exponent + numDigits - 1
         let zeroRun = max(exponent, -exponent)
         let exponentDigits = decimalDigitCount(adjustedExponent)

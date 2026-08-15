@@ -56,7 +56,10 @@ extension Decimals.Wide {
         let (carry, newLow) = low.multipliedFullWidth(by: 10)
         let (highTimesTen, highOverflow) = high.multipliedReportingOverflow(by: 10)
         let (newHigh, carryOverflow) = highTimesTen.addingReportingOverflow(carry)
-        precondition(!highOverflow && !carryOverflow, "Decimals.Wide multiplication overflowed 256 bits")
+        precondition(
+            !highOverflow && !carryOverflow,
+            "Decimals.Wide multiplication overflowed 256 bits"
+        )
         return Self(high: newHigh, low: newLow)
     }
 
@@ -105,7 +108,9 @@ extension Decimals.Wide {
         let (highQuotient, highRemainder) = high.quotientAndRemainder(dividingBy: 10)
         // `highRemainder` is always in 0...9, satisfying `dividingFullWidth`'s
         // `dividend.high < divisor` precondition for divisor 10.
-        let (lowQuotient, lowRemainder) = UInt128(10).dividingFullWidth((high: highRemainder, low: low))
+        let (lowQuotient, lowRemainder) = UInt128(10).dividingFullWidth(
+            (high: highRemainder, low: low)
+        )
         return (Self(high: highQuotient, low: lowQuotient), lowRemainder)
     }
 
@@ -118,7 +123,9 @@ extension Decimals.Wide {
     /// widened to `UInt128`, or `UInt128.max` itself) — the format's actual
     /// `coefficientMax()` is smaller still and is enforced separately by the
     /// rounding kernel this feeds into.
-    func reduced(toFitBelowOrEqual limit: UInt128) -> (coefficient: UInt128, shift: Int, sticky: Bool) {
+    func reduced(
+        toFitBelowOrEqual limit: UInt128
+    ) -> (coefficient: UInt128, shift: Int, sticky: Bool) {
         var value = self
         var shift = 0
         var sticky = false

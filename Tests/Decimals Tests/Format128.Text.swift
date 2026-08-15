@@ -18,7 +18,10 @@ extension Decimal.Format128.Test {
         // see REPORT.md risk notes. Not touched here; these tests route around it
         // while still exercising the F-001 large-exponent buffer-capacity fix.
 
-        @Test func `render appending does not overflow scratch buffer for large positive exponent plain style`() {
+        @Test
+        func
+            `render appending does not overflow scratch buffer for large positive exponent plain style`()
+        {
             // coefficient 1, exponent 6111 => plain rendering needs 1 digit + 6111
             // trailing zeros = 6112 bytes, vastly beyond the old fixed 64-byte
             // scratch buffer (F-001).
@@ -34,7 +37,10 @@ extension Decimal.Format128.Test {
             #expect(rendered.count == 1 + 6111)
         }
 
-        @Test func `render appending does not overflow scratch buffer for min negative exponent plain style`() {
+        @Test
+        func
+            `render appending does not overflow scratch buffer for min negative exponent plain style`()
+        {
             let value = Decimal.Format128.encode(
                 sign: .negative,
                 exponent: Decimal.Exponent.Format128.min,
@@ -78,10 +84,13 @@ extension Decimal.Format128.Test {
             #expect(value.test.negative)
         }
 
-        @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws {
+        @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws
+        {
             // 35 significant digits (34 ones + a final 7); Format128's precision is
             // 34. Dropped digit 7 > 5 rounds the 34th digit up, exponent 0 -> 1.
-            let value = try Decimal.Format128.text([UInt8]((String(repeating: "1", count: 34) + "7").utf8))
+            let value = try Decimal.Format128.text(
+                [UInt8]((String(repeating: "1", count: 34) + "7").utf8)
+            )
             let expected = Decimal.Format128.encode(
                 sign: .positive,
                 exponent: Decimal.Exponent(1),

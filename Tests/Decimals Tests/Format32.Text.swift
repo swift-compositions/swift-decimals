@@ -18,7 +18,10 @@ extension Decimal.Format32.Test {
         // REPORT.md risk notes. Not touched here; these tests route around it while
         // still exercising the F-001 large-exponent buffer-capacity fix.
 
-        @Test func `render appending does not overflow scratch buffer for large positive exponent plain style`() {
+        @Test
+        func
+            `render appending does not overflow scratch buffer for large positive exponent plain style`()
+        {
             // coefficient 1, exponent 90 => plain rendering needs 1 digit + 90
             // trailing zeros = 91 bytes, beyond the old fixed 32-byte scratch buffer (F-001).
             let value = Decimal.Format32.encode(
@@ -33,7 +36,10 @@ extension Decimal.Format32.Test {
             #expect(rendered.count == 1 + 90)
         }
 
-        @Test func `render appending does not overflow scratch buffer for min negative exponent plain style`() {
+        @Test
+        func
+            `render appending does not overflow scratch buffer for min negative exponent plain style`()
+        {
             let value = Decimal.Format32.encode(
                 sign: .negative,
                 exponent: Decimal.Exponent.Format32.min,
@@ -77,11 +83,16 @@ extension Decimal.Format32.Test {
             #expect(value.test.negative)
         }
 
-        @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws {
+        @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws
+        {
             // 8 significant digits; Format32's precision is 7. Dropped digit 7 > 5
             // rounds the 7th digit up: 1234567 -> 1234568, exponent 0 -> 1.
             let value = try Decimal.Format32.text([UInt8]("12345677".utf8))
-            let expected = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(1), coefficient: 1_234_568)
+            let expected = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(1),
+                coefficient: 1_234_568
+            )
             #expect(value == expected)
         }
     }

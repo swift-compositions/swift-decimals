@@ -51,7 +51,9 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         // 4. Handle zero cases
         if x.test.zero || y.test.zero {
             if z.test.zero {
-                let resultSign: Decimal.Sign = (productSign == .negative && z.sign == .negative) ? .negative : (context.rounding == .floor ? .negative : .positive)
+                let resultSign: Decimal.Sign =
+                    (productSign == .negative && z.sign == .negative)
+                    ? .negative : (context.rounding == .floor ? .negative : .positive)
                 return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
             }
             return Decimal.Outcome(value: z, status: .none)
@@ -78,10 +80,16 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             )
 
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: productSign), status: status.union(Decimal.Status.overflow))
+                return Decimal.Outcome(
+                    value: .infinity(sign: productSign),
+                    status: status.union(Decimal.Status.overflow)
+                )
             }
 
-            return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+            return Decimal.Outcome(
+                value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff),
+                status: status
+            )
         }
 
         // Need to add z - align exponents and add
@@ -134,7 +142,10 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             let digitsNear = Decimals.Rounding.digitCount(zCoeff)
             let threshold = context.precision.rawValue + digitsFar - digitsNear + 1
             if diff.rawValue <= threshold {
-                let scaledZ = Decimals.Wide.multiplied(Decimals.Wide(zCoeff), byPowerOf10: diff.rawValue)
+                let scaledZ = Decimals.Wide.multiplied(
+                    Decimals.Wide(zCoeff),
+                    byPowerOf10: diff.rawValue
+                )
                 let wideP = Decimals.Wide(pCoeff)
                 let resultSign: Decimal.Sign
                 let wideSum: Decimals.Wide
@@ -162,9 +173,19 @@ extension Decimal.Operation where Value == Decimal.Format64 {
                     sticky: sticky
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: resultSign),
+                        status: status.union(Decimal.Status.overflow)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: resultSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status
+                )
             }
             // z dominates the product beyond the guard-digit window; the product
             // is discarded but folded into z's own rounding decision as sticky.
@@ -177,9 +198,15 @@ extension Decimal.Operation where Value == Decimal.Format64 {
                 sticky: true
             )
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: z.sign), status: status.union(Decimal.Status.overflow))
+                return Decimal.Outcome(
+                    value: .infinity(sign: z.sign),
+                    status: status.union(Decimal.Status.overflow)
+                )
             }
-            return Decimal.Outcome(value: Value.encode(sign: z.sign, exponent: finalExp, coefficient: finalCoeff), status: status)
+            return Decimal.Outcome(
+                value: Value.encode(sign: z.sign, exponent: finalExp, coefficient: finalCoeff),
+                status: status
+            )
         } else if zExp < pExp {
             let diff = pExp - zExp
             let digitsFar = Decimals.Rounding.digitCount(zCoeff)
@@ -234,7 +261,10 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             let sameSign = productSign == z.sign
             let effectiveThreshold = max(threshold, digitsFar)
             if diff.rawValue <= effectiveThreshold {
-                let scaledP = Decimals.Wide.multiplied(Decimals.Wide(pCoeff), byPowerOf10: diff.rawValue)
+                let scaledP = Decimals.Wide.multiplied(
+                    Decimals.Wide(pCoeff),
+                    byPowerOf10: diff.rawValue
+                )
                 let wideZ = Decimals.Wide(zCoeff)
                 let resultSign: Decimal.Sign
                 let wideSum: Decimals.Wide
@@ -262,9 +292,19 @@ extension Decimal.Operation where Value == Decimal.Format64 {
                     sticky: sticky
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: resultSign),
+                        status: status.union(Decimal.Status.overflow)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: resultSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status
+                )
             }
             if sameSign {
                 // The product dominates z beyond the guard-digit window; round
@@ -281,9 +321,19 @@ extension Decimal.Operation where Value == Decimal.Format64 {
                     sticky: true
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: productSign), status: status.union(Decimal.Status.overflow).union(.inexact))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: productSign),
+                        status: status.union(Decimal.Status.overflow).union(.inexact)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff), status: status.union(.inexact))
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: productSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status.union(.inexact)
+                )
             }
             // Opposite sign, beyond `effectiveThreshold`: `diff > digitsFar`
             // is now guaranteed, so z's true magnitude is strictly less than
@@ -308,9 +358,19 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             // status bit.
             if digitsNear <= context.precision.rawValue {
                 if productExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: productSign), status: Decimal.Status.overflow.union(.inexact))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: productSign),
+                        status: Decimal.Status.overflow.union(.inexact)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: productExp, coefficient: UInt64(productCoeff)), status: .inexact)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: productSign,
+                        exponent: productExp,
+                        coefficient: UInt64(productCoeff)
+                    ),
+                    status: .inexact
+                )
             }
             // Genuine rounding needed (`digitsNear > precision`): the target
             // boundary sits strictly within `productCoeff`'s own digits, so
@@ -336,9 +396,15 @@ extension Decimal.Operation where Value == Decimal.Format64 {
                 sticky: true
             )
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: productSign), status: status.union(Decimal.Status.overflow).union(.inexact))
+                return Decimal.Outcome(
+                    value: .infinity(sign: productSign),
+                    status: status.union(Decimal.Status.overflow).union(.inexact)
+                )
             }
-            return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff), status: status.union(.inexact))
+            return Decimal.Outcome(
+                value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff),
+                status: status.union(.inexact)
+            )
         }
 
         // Add/subtract based on signs
@@ -373,10 +439,16 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         )
 
         if finalExp > context.maxExponent {
-            return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+            return Decimal.Outcome(
+                value: .infinity(sign: resultSign),
+                status: status.union(Decimal.Status.overflow)
+            )
         }
 
-        return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+        return Decimal.Outcome(
+            value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff),
+            status: status
+        )
     }
 
     public func fuse(
@@ -440,7 +512,9 @@ extension Decimal.Operation where Value == Decimal.Format32 {
         // 4. Handle zero cases
         if x.test.zero || y.test.zero {
             if z.test.zero {
-                let resultSign: Decimal.Sign = (productSign == .negative && z.sign == .negative) ? .negative : (context.rounding == .floor ? .negative : .positive)
+                let resultSign: Decimal.Sign =
+                    (productSign == .negative && z.sign == .negative)
+                    ? .negative : (context.rounding == .floor ? .negative : .positive)
                 return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
             }
             return Decimal.Outcome(value: z, status: .none)
@@ -466,10 +540,16 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             )
 
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: productSign), status: status.union(Decimal.Status.overflow))
+                return Decimal.Outcome(
+                    value: .infinity(sign: productSign),
+                    status: status.union(Decimal.Status.overflow)
+                )
             }
 
-            return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+            return Decimal.Outcome(
+                value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff),
+                status: status
+            )
         }
 
         let zCoeff = UInt64(z.extractCoefficient())
@@ -519,7 +599,10 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             let digitsNear = Decimals.Rounding.digitCount(zCoeff)
             let threshold = context.precision.rawValue + digitsFar - digitsNear + 1
             if diff.rawValue <= threshold {
-                let scaledZ = Decimals.Wide.multiplied(Decimals.Wide(UInt128(zCoeff)), byPowerOf10: diff.rawValue)
+                let scaledZ = Decimals.Wide.multiplied(
+                    Decimals.Wide(UInt128(zCoeff)),
+                    byPowerOf10: diff.rawValue
+                )
                 let wideP = Decimals.Wide(UInt128(productCoeff))
                 let resultSign: Decimal.Sign
                 let wideSum: Decimals.Wide
@@ -537,7 +620,9 @@ extension Decimal.Operation where Value == Decimal.Format32 {
                     let zeroSign: Decimal.Sign = context.rounding == .floor ? .negative : .positive
                     return Decimal.Outcome(value: .zero(sign: zeroSign), status: .none)
                 }
-                let (reduced, shift, sticky) = wideSum.reduced(toFitBelowOrEqual: UInt128(UInt64.max))
+                let (reduced, shift, sticky) = wideSum.reduced(
+                    toFitBelowOrEqual: UInt128(UInt64.max)
+                )
                 let (finalCoeff, finalExp, status) = Decimals.Rounding.round(
                     coefficient: UInt64(reduced),
                     exponent: productExp + shift,
@@ -547,9 +632,19 @@ extension Decimal.Operation where Value == Decimal.Format32 {
                     sticky: sticky
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: resultSign),
+                        status: status.union(Decimal.Status.overflow)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: resultSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status
+                )
             }
             // z dominates the product beyond the guard-digit window; the product
             // is discarded but folded into z's own rounding decision as sticky.
@@ -562,9 +657,15 @@ extension Decimal.Operation where Value == Decimal.Format32 {
                 sticky: true
             )
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: z.sign), status: status.union(Decimal.Status.overflow))
+                return Decimal.Outcome(
+                    value: .infinity(sign: z.sign),
+                    status: status.union(Decimal.Status.overflow)
+                )
             }
-            return Decimal.Outcome(value: Value.encode(sign: z.sign, exponent: finalExp, coefficient: finalCoeff), status: status)
+            return Decimal.Outcome(
+                value: Value.encode(sign: z.sign, exponent: finalExp, coefficient: finalCoeff),
+                status: status
+            )
         } else if zExp < productExp {
             let diff = productExp - zExp
             let digitsFar = Decimals.Rounding.digitCount(zCoeff)
@@ -583,7 +684,10 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             let sameSign = productSign == z.sign
             let effectiveThreshold = max(threshold, digitsFar)
             if diff.rawValue <= effectiveThreshold {
-                let scaledP = Decimals.Wide.multiplied(Decimals.Wide(UInt128(productCoeff)), byPowerOf10: diff.rawValue)
+                let scaledP = Decimals.Wide.multiplied(
+                    Decimals.Wide(UInt128(productCoeff)),
+                    byPowerOf10: diff.rawValue
+                )
                 let wideZ = Decimals.Wide(UInt128(zCoeff))
                 let resultSign: Decimal.Sign
                 let wideSum: Decimals.Wide
@@ -601,7 +705,9 @@ extension Decimal.Operation where Value == Decimal.Format32 {
                     let zeroSign: Decimal.Sign = context.rounding == .floor ? .negative : .positive
                     return Decimal.Outcome(value: .zero(sign: zeroSign), status: .none)
                 }
-                let (reduced, shift, sticky) = wideSum.reduced(toFitBelowOrEqual: UInt128(UInt64.max))
+                let (reduced, shift, sticky) = wideSum.reduced(
+                    toFitBelowOrEqual: UInt128(UInt64.max)
+                )
                 let (finalCoeff, finalExp, status) = Decimals.Rounding.round(
                     coefficient: UInt64(reduced),
                     exponent: zExp + shift,
@@ -611,9 +717,19 @@ extension Decimal.Operation where Value == Decimal.Format32 {
                     sticky: sticky
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: resultSign),
+                        status: status.union(Decimal.Status.overflow)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: resultSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status
+                )
             }
             if sameSign {
                 // The product dominates z beyond the guard-digit window; round
@@ -630,9 +746,19 @@ extension Decimal.Operation where Value == Decimal.Format32 {
                     sticky: true
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: productSign), status: status.union(Decimal.Status.overflow).union(.inexact))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: productSign),
+                        status: status.union(Decimal.Status.overflow).union(.inexact)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff), status: status.union(.inexact))
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: productSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status.union(.inexact)
+                )
             }
             // Opposite sign, beyond `effectiveThreshold`: signed sticky fold
             // (see the Format64 branch above and this revision's report for
@@ -643,9 +769,19 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             // safely within UInt64.
             if digitsNear <= context.precision.rawValue {
                 if productExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: productSign), status: Decimal.Status.overflow.union(.inexact))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: productSign),
+                        status: Decimal.Status.overflow.union(.inexact)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: productExp, coefficient: UInt32(productCoeff)), status: .inexact)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: productSign,
+                        exponent: productExp,
+                        coefficient: UInt32(productCoeff)
+                    ),
+                    status: .inexact
+                )
             }
             let extendedCoeff = productCoeff * 10 - 1
             let (finalCoeff, finalExp, status) = Decimals.Rounding.round(
@@ -657,9 +793,15 @@ extension Decimal.Operation where Value == Decimal.Format32 {
                 sticky: true
             )
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: productSign), status: status.union(Decimal.Status.overflow).union(.inexact))
+                return Decimal.Outcome(
+                    value: .infinity(sign: productSign),
+                    status: status.union(Decimal.Status.overflow).union(.inexact)
+                )
             }
-            return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff), status: status.union(.inexact))
+            return Decimal.Outcome(
+                value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff),
+                status: status.union(.inexact)
+            )
         }
 
         let resultSign: Decimal.Sign
@@ -692,10 +834,16 @@ extension Decimal.Operation where Value == Decimal.Format32 {
         )
 
         if finalExp > context.maxExponent {
-            return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+            return Decimal.Outcome(
+                value: .infinity(sign: resultSign),
+                status: status.union(Decimal.Status.overflow)
+            )
         }
 
-        return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+        return Decimal.Outcome(
+            value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff),
+            status: status
+        )
     }
 
     public func fuse(
@@ -759,7 +907,9 @@ extension Decimal.Operation where Value == Decimal.Format128 {
         // 4. Handle zero cases
         if x.test.zero || y.test.zero {
             if z.test.zero {
-                let resultSign: Decimal.Sign = (productSign == .negative && z.sign == .negative) ? .negative : (context.rounding == .floor ? .negative : .positive)
+                let resultSign: Decimal.Sign =
+                    (productSign == .negative && z.sign == .negative)
+                    ? .negative : (context.rounding == .floor ? .negative : .positive)
                 return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
             }
             return Decimal.Outcome(value: z, status: .none)
@@ -787,10 +937,16 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             )
 
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: productSign), status: status.union(Decimal.Status.overflow))
+                return Decimal.Outcome(
+                    value: .infinity(sign: productSign),
+                    status: status.union(Decimal.Status.overflow)
+                )
             }
 
-            return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+            return Decimal.Outcome(
+                value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff),
+                status: status
+            )
         }
 
         let zCoeff = z.extractCoefficient()
@@ -851,7 +1007,10 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             let digitsNear = Decimals.Rounding.digitCount(zCoeff)
             let threshold = context.precision.rawValue + digitsFar - digitsNear + 1
             if diff.rawValue <= threshold {
-                let scaledZ = Decimals.Wide.multiplied(Decimals.Wide(zCoeff), byPowerOf10: diff.rawValue)
+                let scaledZ = Decimals.Wide.multiplied(
+                    Decimals.Wide(zCoeff),
+                    byPowerOf10: diff.rawValue
+                )
                 let wideP = Decimals.Wide(productCoeff)
                 let resultSign: Decimal.Sign
                 let wideSum: Decimals.Wide
@@ -879,9 +1038,19 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                     sticky: sticky
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: resultSign),
+                        status: status.union(Decimal.Status.overflow)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: resultSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status
+                )
             }
             // z dominates the product beyond the guard-digit window; the product
             // is discarded but folded into z's own rounding decision as sticky.
@@ -894,9 +1063,15 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                 sticky: true
             )
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: z.sign), status: status.union(Decimal.Status.overflow))
+                return Decimal.Outcome(
+                    value: .infinity(sign: z.sign),
+                    status: status.union(Decimal.Status.overflow)
+                )
             }
-            return Decimal.Outcome(value: Value.encode(sign: z.sign, exponent: finalExp, coefficient: finalCoeff), status: status)
+            return Decimal.Outcome(
+                value: Value.encode(sign: z.sign, exponent: finalExp, coefficient: finalCoeff),
+                status: status
+            )
         } else if zExp < productExp {
             let diff = productExp - zExp
             let digitsFar = Decimals.Rounding.digitCount(zCoeff)
@@ -922,7 +1097,10 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             let sameSign = productSign == z.sign
             let effectiveThreshold = max(threshold, digitsFar)
             if diff.rawValue <= effectiveThreshold {
-                let scaledP = Decimals.Wide.multiplied(Decimals.Wide(productCoeff), byPowerOf10: diff.rawValue)
+                let scaledP = Decimals.Wide.multiplied(
+                    Decimals.Wide(productCoeff),
+                    byPowerOf10: diff.rawValue
+                )
                 let wideZ = Decimals.Wide(zCoeff)
                 let resultSign: Decimal.Sign
                 let wideSum: Decimals.Wide
@@ -950,9 +1128,19 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                     sticky: sticky
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: resultSign),
+                        status: status.union(Decimal.Status.overflow)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: resultSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status
+                )
             }
             if sameSign {
                 // The product dominates z beyond the guard-digit window; round
@@ -969,9 +1157,19 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                     sticky: true
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: productSign), status: status.union(Decimal.Status.overflow).union(.inexact))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: productSign),
+                        status: status.union(Decimal.Status.overflow).union(.inexact)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff), status: status.union(.inexact))
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: productSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status.union(.inexact)
+                )
             }
             // Opposite sign, beyond `effectiveThreshold`: signed sticky fold
             // (see the Format64 branch above and this revision's report for
@@ -987,11 +1185,23 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             // before rounding.
             if digitsNear <= context.precision.rawValue {
                 if productExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: productSign), status: Decimal.Status.overflow.union(.inexact))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: productSign),
+                        status: Decimal.Status.overflow.union(.inexact)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: productExp, coefficient: productCoeff), status: .inexact)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: productSign,
+                        exponent: productExp,
+                        coefficient: productCoeff
+                    ),
+                    status: .inexact
+                )
             }
-            let extendedWide = Decimals.Wide(productCoeff).multipliedBy10().subtracting(Decimals.Wide(UInt128(1)))
+            let extendedWide = Decimals.Wide(productCoeff).multipliedBy10().subtracting(
+                Decimals.Wide(UInt128(1))
+            )
             let (reducedCoeff, reduceShift, _) = extendedWide.reducedToFitUInt128()
             let (finalCoeff, finalExp, status) = Decimals.Rounding.round128(
                 coefficient: reducedCoeff,
@@ -1002,9 +1212,15 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                 sticky: true
             )
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: productSign), status: status.union(Decimal.Status.overflow).union(.inexact))
+                return Decimal.Outcome(
+                    value: .infinity(sign: productSign),
+                    status: status.union(Decimal.Status.overflow).union(.inexact)
+                )
             }
-            return Decimal.Outcome(value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff), status: status.union(.inexact))
+            return Decimal.Outcome(
+                value: Value.encode(sign: productSign, exponent: finalExp, coefficient: finalCoeff),
+                status: status.union(.inexact)
+            )
         }
 
         let resultSign: Decimal.Sign
@@ -1037,10 +1253,16 @@ extension Decimal.Operation where Value == Decimal.Format128 {
         )
 
         if finalExp > context.maxExponent {
-            return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+            return Decimal.Outcome(
+                value: .infinity(sign: resultSign),
+                status: status.union(Decimal.Status.overflow)
+            )
         }
 
-        return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+        return Decimal.Outcome(
+            value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff),
+            status: status
+        )
     }
 
     public func fuse(

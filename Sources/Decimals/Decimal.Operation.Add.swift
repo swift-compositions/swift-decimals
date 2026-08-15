@@ -8,7 +8,10 @@ extension Decimal.Operation where Value == Decimal.Format32 {
 
         // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
-            let payload = a.test.signaling ? Decimal.Payload(UInt64(a.extractCoefficient())) : Decimal.Payload(UInt64(b.extractCoefficient()))
+            let payload =
+                a.test.signaling
+                ? Decimal.Payload(UInt64(a.extractCoefficient()))
+                : Decimal.Payload(UInt64(b.extractCoefficient()))
             return Decimal.Outcome(value: .nan(kind: .quiet, payload: payload), status: .invalid)
         }
 
@@ -34,7 +37,9 @@ extension Decimal.Operation where Value == Decimal.Format32 {
 
         // 3. Handle zero cases
         if a.test.zero && b.test.zero {
-            let resultSign: Decimal.Sign = (a.sign == .negative && b.sign == .negative) ? .negative : (context.rounding == .floor ? .negative : .positive)
+            let resultSign: Decimal.Sign =
+                (a.sign == .negative && b.sign == .negative)
+                ? .negative : (context.rounding == .floor ? .negative : .positive)
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
         if a.test.zero {
@@ -125,7 +130,10 @@ extension Decimal.Operation where Value == Decimal.Format32 {
 
         // 8. Check for overflow
         if finalExp > context.maxExponent {
-            return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+            return Decimal.Outcome(
+                value: .infinity(sign: resultSign),
+                status: status.union(Decimal.Status.overflow)
+            )
         }
 
         // 9. Encode result
@@ -152,7 +160,9 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
             // Signaling NaN raises invalid and returns quiet NaN
-            let payload = a.test.signaling ? Decimal.Payload(a.extractCoefficient()) : Decimal.Payload(b.extractCoefficient())
+            let payload =
+                a.test.signaling
+                ? Decimal.Payload(a.extractCoefficient()) : Decimal.Payload(b.extractCoefficient())
             return Decimal.Outcome(value: .nan(kind: .quiet, payload: payload), status: .invalid)
         }
 
@@ -180,7 +190,9 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         // 3. Handle zero cases
         if a.test.zero && b.test.zero {
             // 0 + 0: sign depends on rounding mode
-            let resultSign: Decimal.Sign = (a.sign == .negative && b.sign == .negative) ? .negative : (context.rounding == .floor ? .negative : .positive)
+            let resultSign: Decimal.Sign =
+                (a.sign == .negative && b.sign == .negative)
+                ? .negative : (context.rounding == .floor ? .negative : .positive)
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
         if a.test.zero {
@@ -276,7 +288,10 @@ extension Decimal.Operation where Value == Decimal.Format64 {
 
         // 8. Check for overflow
         if finalExp > context.maxExponent {
-            return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+            return Decimal.Outcome(
+                value: .infinity(sign: resultSign),
+                status: status.union(Decimal.Status.overflow)
+            )
         }
 
         // 9. Encode result
@@ -302,7 +317,10 @@ extension Decimal.Operation where Value == Decimal.Format128 {
 
         // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
-            let payload = a.test.signaling ? Decimal.Payload(UInt64(truncatingIfNeeded: a.extractCoefficient())) : Decimal.Payload(UInt64(truncatingIfNeeded: b.extractCoefficient()))
+            let payload =
+                a.test.signaling
+                ? Decimal.Payload(UInt64(truncatingIfNeeded: a.extractCoefficient()))
+                : Decimal.Payload(UInt64(truncatingIfNeeded: b.extractCoefficient()))
             return Decimal.Outcome(value: .nan(kind: .quiet, payload: payload), status: .invalid)
         }
 
@@ -328,7 +346,9 @@ extension Decimal.Operation where Value == Decimal.Format128 {
 
         // 3. Handle zero cases
         if a.test.zero && b.test.zero {
-            let resultSign: Decimal.Sign = (a.sign == .negative && b.sign == .negative) ? .negative : (context.rounding == .floor ? .negative : .positive)
+            let resultSign: Decimal.Sign =
+                (a.sign == .negative && b.sign == .negative)
+                ? .negative : (context.rounding == .floor ? .negative : .positive)
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
         if a.test.zero {
@@ -409,7 +429,10 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             let digitsNear = Decimals.Rounding.digitCount(coeffB)
             let threshold = context.precision.rawValue + digitsFar - digitsNear + 1
             if diff.rawValue <= threshold {
-                let scaledB = Decimals.Wide.multiplied(Decimals.Wide(coeffB), byPowerOf10: diff.rawValue)
+                let scaledB = Decimals.Wide.multiplied(
+                    Decimals.Wide(coeffB),
+                    byPowerOf10: diff.rawValue
+                )
                 let wideA = Decimals.Wide(coeffA)
                 let resultSign: Decimal.Sign
                 let wideSum: Decimals.Wide
@@ -437,9 +460,19 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                     sticky: sticky
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: resultSign),
+                        status: status.union(Decimal.Status.overflow)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: resultSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status
+                )
             }
             let (finalCoeff, finalExp, status) = Decimals.Rounding.round128(
                 coefficient: coeffB,
@@ -450,16 +483,25 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                 sticky: true
             )
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: signB), status: status.union(Decimal.Status.overflow))
+                return Decimal.Outcome(
+                    value: .infinity(sign: signB),
+                    status: status.union(Decimal.Status.overflow)
+                )
             }
-            return Decimal.Outcome(value: Value.encode(sign: signB, exponent: finalExp, coefficient: finalCoeff), status: status)
+            return Decimal.Outcome(
+                value: Value.encode(sign: signB, exponent: finalExp, coefficient: finalCoeff),
+                status: status
+            )
         } else if expB < expA {
             let diff = expA - expB
             let digitsFar = Decimals.Rounding.digitCount(coeffB)
             let digitsNear = Decimals.Rounding.digitCount(coeffA)
             let threshold = context.precision.rawValue + digitsFar - digitsNear + 1
             if diff.rawValue <= threshold {
-                let scaledA = Decimals.Wide.multiplied(Decimals.Wide(coeffA), byPowerOf10: diff.rawValue)
+                let scaledA = Decimals.Wide.multiplied(
+                    Decimals.Wide(coeffA),
+                    byPowerOf10: diff.rawValue
+                )
                 let wideB = Decimals.Wide(coeffB)
                 let resultSign: Decimal.Sign
                 let wideSum: Decimals.Wide
@@ -487,9 +529,19 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                     sticky: sticky
                 )
                 if finalExp > context.maxExponent {
-                    return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+                    return Decimal.Outcome(
+                        value: .infinity(sign: resultSign),
+                        status: status.union(Decimal.Status.overflow)
+                    )
                 }
-                return Decimal.Outcome(value: Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff), status: status)
+                return Decimal.Outcome(
+                    value: Value.encode(
+                        sign: resultSign,
+                        exponent: finalExp,
+                        coefficient: finalCoeff
+                    ),
+                    status: status
+                )
             }
             let (finalCoeff, finalExp, status) = Decimals.Rounding.round128(
                 coefficient: coeffA,
@@ -500,9 +552,15 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                 sticky: true
             )
             if finalExp > context.maxExponent {
-                return Decimal.Outcome(value: .infinity(sign: signA), status: status.union(Decimal.Status.overflow))
+                return Decimal.Outcome(
+                    value: .infinity(sign: signA),
+                    status: status.union(Decimal.Status.overflow)
+                )
             }
-            return Decimal.Outcome(value: Value.encode(sign: signA, exponent: finalExp, coefficient: finalCoeff), status: status)
+            return Decimal.Outcome(
+                value: Value.encode(sign: signA, exponent: finalExp, coefficient: finalCoeff),
+                status: status
+            )
         }
 
         // 6. Perform addition/subtraction
@@ -538,7 +596,10 @@ extension Decimal.Operation where Value == Decimal.Format128 {
 
         // 8. Check for overflow
         if finalExp > context.maxExponent {
-            return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+            return Decimal.Outcome(
+                value: .infinity(sign: resultSign),
+                status: status.union(Decimal.Status.overflow)
+            )
         }
 
         // 9. Encode result
