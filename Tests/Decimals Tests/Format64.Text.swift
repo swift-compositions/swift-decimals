@@ -91,14 +91,19 @@ extension Decimal.Format64.Test {
             #expect(value.test.negative)
         }
 
-        @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws {
+        @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws
+        {
             // 17 significant digits; Format64's precision is 16. Passing the raw
             // 17-digit coefficient straight to encode() (as the pre-fix code did)
             // silently corrupts the bit pattern instead of correctly rounding
             // (F-005). Correctly rounded (round-half-even, dropped digit 7 > 5
             // rounds up): 1234567890123456 -> 1234567890123457, exponent 0 -> 1.
             let value = try Decimal.Format64.text([UInt8]("12345678901234567".utf8))
-            let expected = Decimal.Format64.encode(sign: .positive, exponent: Decimal.Exponent(1), coefficient: 1_234_567_890_123_457)
+            let expected = Decimal.Format64.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(1),
+                coefficient: 1_234_567_890_123_457
+            )
             #expect(value == expected)
         }
 
@@ -156,7 +161,10 @@ extension Decimal.Format64.Test {
         // part of this brief's evidence and is not touched here; these tests route
         // around it while still exercising the F-001 large-exponent buffer-capacity fix.
 
-        @Test func `render appending does not overflow scratch buffer for large positive exponent plain style`() {
+        @Test
+        func
+            `render appending does not overflow scratch buffer for large positive exponent plain style`()
+        {
             // coefficient 1, exponent 369 => plain rendering needs 1 digit + 369
             // trailing zeros = 370 bytes, far beyond the old fixed 64-byte scratch
             // buffer (F-001).
@@ -172,7 +180,10 @@ extension Decimal.Format64.Test {
             #expect(rendered.count == 1 + 369)
         }
 
-        @Test func `render appending does not overflow scratch buffer for min negative exponent plain style`() {
+        @Test
+        func
+            `render appending does not overflow scratch buffer for min negative exponent plain style`()
+        {
             // coefficient 1, exponent = Format64.min (-383) => plain rendering needs
             // "0." + 382 leading zeros + 1 digit + sign, also far beyond 64 bytes.
             let value = Decimal.Format64.encode(
@@ -196,7 +207,10 @@ extension Decimal.Format64.Test {
             #expect(needed > 64)
         }
 
-        @Test func `render appending scientific and engineering styles stay within bounds at large exponent`() {
+        @Test
+        func
+            `render appending scientific and engineering styles stay within bounds at large exponent`()
+        {
             // 16-digit coefficient (below 2^53, so Form1) at a large exponent.
             let value = Decimal.Format64.encode(
                 sign: .negative,

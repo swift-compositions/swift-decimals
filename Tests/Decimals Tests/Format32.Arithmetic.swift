@@ -11,30 +11,61 @@ extension Decimal.Format32.Test {
             // exponent difference of 20 matches the old fixed threshold
             // (`diff.rawValue > 20`) in Add.swift; scaling coeffA by 10^20 overflows
             // UInt64 partway through the naive multiply loop (F-002).
-            let a = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let b = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(-20), coefficient: 1)
+            let a = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let b = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-20),
+                coefficient: 1
+            )
             let result = a.operation.add(b)
             #expect(!result.value.test.nan)
         }
 
         // MARK: - Fuse
 
-        @Test func `fuse does not silently combine unaligned coefficients when exponent difference exceeds old cutoff`() {
+        @Test
+        func
+            `fuse does not silently combine unaligned coefficients when exponent difference exceeds old cutoff`()
+        {
             // x*y = 1 at exponent 0; z = 1 at exponent -30. The exponent difference
             // (30) exceeds the old fixed cutoff (`diff.rawValue <= 20`), which used
             // to leave both coefficients unscaled and combine them as if they shared
             // an exponent, yielding 1 + 1 = 2 instead of the correct (product
             // dominates; z is negligible beyond Format32's 7-digit precision) ~1 (F-003).
-            let x = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let y = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let z = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(-30), coefficient: 1)
+            let x = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let y = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let z = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-30),
+                coefficient: 1
+            )
             let result = x.operation.fuse(y, z)
-            #expect(result.value == Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1))
+            #expect(
+                result.value
+                    == Decimal.Format32.encode(
+                        sign: .positive,
+                        exponent: Decimal.Exponent(0),
+                        coefficient: 1
+                    )
+            )
         }
 
         // MARK: - Divide
 
-        @Test func `divide does not double-round an exact-looking tie that is actually above half`() {
+        @Test func `divide does not double-round an exact-looking tie that is actually above half`()
+        {
             // 1 / 56239, scaled for Format32's precision, produces a quotient whose
             // last rounding-boundary digits look like an exact tie (5000 of 10000),
             // but the raw division has a nonzero remainder (55000) beyond those
@@ -45,16 +76,31 @@ extension Decimal.Format32.Test {
             // rounding kernel, this double-rounds to the wrong (truncated) result (F-003).
             var context = Decimal.Context.format32
             context.rounding = .toward
-            let a = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let b = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 56239)
+            let a = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let b = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 56239
+            )
             let result = a.operation.divide(b, context: context)
-            let expected = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(-11), coefficient: 1_778_126)
+            let expected = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-11),
+                coefficient: 1_778_126
+            )
             #expect(result.value == expected)
         }
 
         // MARK: - F-003 revision 1 (orchestrator-directed)
 
-        @Test func `fuse computes the exact sum within the guard-digit window instead of dropping a still-significant operand`() {
+        @Test
+        func
+            `fuse computes the exact sum within the guard-digit window instead of dropping a still-significant operand`()
+        {
             // F-003 revision 1: fuse()'s alignment fallback used to trigger the
             // instant scaling overflowed UInt64, which — because the unrounded
             // product coefficient can already carry up to twice Format32's
@@ -76,11 +122,27 @@ extension Decimal.Format32.Test {
             // semantics, regardless of how numerically tiny z is relative to
             // the product. Expected value verified by independent bignum
             // arithmetic (Python), not by the implementation under test.
-            let x = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 5_000_000)
-            let y = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 7_000_001)
-            let z = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(-7), coefficient: 1_234_567)
+            let x = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 5_000_000
+            )
+            let y = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 7_000_001
+            )
+            let z = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-7),
+                coefficient: 1_234_567
+            )
             let result = x.operation.fuse(y, z)
-            let expected = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(7), coefficient: 3_500_001)
+            let expected = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(7),
+                coefficient: 3_500_001
+            )
             #expect(result.value != z)
             #expect(result.value == expected)
             #expect(result.status.contains(.inexact))
@@ -88,7 +150,10 @@ extension Decimal.Format32.Test {
 
         // MARK: - F-002/F-003 revision 2 (digit-position-aware decision)
 
-        @Test func `fuse still computes the exact sum when the product has fewer digits than the fixed guard window assumed`() {
+        @Test
+        func
+            `fuse still computes the exact sum when the product has fewer digits than the fixed guard window assumed`()
+        {
             // Revision 1's `precision + 2` fixed guard-digit window (9 for
             // Format32) silently assumed the dominant (near) operand always
             // carries close to `precision` digits of its own. It does not:
@@ -104,11 +169,27 @@ extension Decimal.Format32.Test {
             // by independent bignum arithmetic (Python); the exact sum needs
             // only 7 significant digits, so this is a lossless
             // (non-`.inexact`) result.
-            let x = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let y = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let z = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(-11), coefficient: 5_000_000)
+            let x = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let y = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let z = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-11),
+                coefficient: 5_000_000
+            )
             let result = x.operation.fuse(y, z)
-            let expected = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(-6), coefficient: 1_000_050)
+            let expected = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-6),
+                coefficient: 1_000_050
+            )
             #expect(result.value != x)
             #expect(result.value == expected)
             #expect(!result.status.contains(.inexact))
@@ -117,7 +198,10 @@ extension Decimal.Format32.Test {
         // MARK: - F-002/F-003 revision 5 (product-dominates same-sign
         // near-tie widening, [INST-TEST-013])
 
-        @Test func `fuse rounds a same-sign near tie in the product's own digits correctly when z is not negligible`() {
+        @Test
+        func
+            `fuse rounds a same-sign near tie in the product's own digits correctly when z is not negligible`()
+        {
             // Revision 4 fixed the opposite-sign sign-drop but deliberately
             // left the SAME-SIGN drop path bit-for-bit unchanged (bare
             // `threshold`, no widening). That path is unsound too: once
@@ -140,17 +224,40 @@ extension Decimal.Format32.Test {
             // verified with an exact-`Fraction` Python oracle (no
             // floating-point or bounded-precision `Decimal` context
             // involved).
-            let x = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 965_551)
-            let y = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 6_929_998)
-            let z = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(-3), coefficient: 7_424_422)
+            let x = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 965_551
+            )
+            let y = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 6_929_998
+            )
+            let z = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-3),
+                coefficient: 7_424_422
+            )
             let result = x.operation.fuse(y, z)
-            let wrongPreFix = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(6), coefficient: 6_691_266)
-            let expected = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(6), coefficient: 6_691_267)
+            let wrongPreFix = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(6),
+                coefficient: 6_691_266
+            )
+            let expected = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(6),
+                coefficient: 6_691_267
+            )
             #expect(result.value != wrongPreFix)
             #expect(result.value == expected)
         }
 
-        @Test func `fuse rounds a second same-sign near tie in the product's own digits correctly when z is not negligible`() {
+        @Test
+        func
+            `fuse rounds a second same-sign near tie in the product's own digits correctly when z is not negligible`()
+        {
             // Second, independently-constructed reproducer for the same
             // defect class as above (different digit widths/`diff`).
             //
@@ -164,12 +271,32 @@ extension Decimal.Format32.Test {
             // 2033488E7 — not down to the bare product's own leading 7
             // digits, 2033487E7. Independently verified with the same
             // exact-`Fraction` oracle.
-            let x = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 5_070_194)
-            let y = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 4_010_670)
-            let z = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(-2), coefficient: 3_247_266)
+            let x = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 5_070_194
+            )
+            let y = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 4_010_670
+            )
+            let z = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-2),
+                coefficient: 3_247_266
+            )
             let result = x.operation.fuse(y, z)
-            let wrongPreFix = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(7), coefficient: 2_033_487)
-            let expected = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(7), coefficient: 2_033_488)
+            let wrongPreFix = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(7),
+                coefficient: 2_033_487
+            )
+            let expected = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(7),
+                coefficient: 2_033_488
+            )
             #expect(result.value != wrongPreFix)
             #expect(result.value == expected)
         }
@@ -177,7 +304,10 @@ extension Decimal.Format32.Test {
         // MARK: - F-002/F-003 revision 4 (product-dominates opposite-sign
         // exact-tie sign drop, [INST-TEST-013])
 
-        @Test func `fuse rounds an exact tie in the product's own digits toward the correct side when z is opposite sign`() {
+        @Test
+        func
+            `fuse rounds an exact tie in the product's own digits toward the correct side when z is opposite sign`()
+        {
             // Same defect and derivation as the Format128 case (see
             // Format128.Arithmetic.swift's revision 4 test for the full
             // write-up): the drop path's `sticky: true` always nudges an
@@ -200,19 +330,42 @@ extension Decimal.Format32.Test {
             // verified with Python `decimal` (prec=7, ROUND_HALF_EVEN):
             // `Decimal('20000005') + Decimal('-0.01')` rounded to 7
             // significant digits.
-            let x = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 4_000_001)
-            let y = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 5)
-            let z = Decimal.Format32.encode(sign: .negative, exponent: Decimal.Exponent(-2), coefficient: 1)
+            let x = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 4_000_001
+            )
+            let y = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 5
+            )
+            let z = Decimal.Format32.encode(
+                sign: .negative,
+                exponent: Decimal.Exponent(-2),
+                coefficient: 1
+            )
             let result = x.operation.fuse(y, z)
-            let wrongPreFix = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(1), coefficient: 2_000_001)
-            let expected = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(1), coefficient: 2_000_000)
+            let wrongPreFix = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(1),
+                coefficient: 2_000_001
+            )
+            let expected = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(1),
+                coefficient: 2_000_000
+            )
             #expect(result.value != wrongPreFix)
             #expect(result.value == expected)
         }
 
         // MARK: - F-002/F-003 revision 3 (opposite-sign borrow off-by-one)
 
-        @Test func `fuse does not drop a still-significant addend across an opposite-sign borrow when the product is a power of ten`() {
+        @Test
+        func
+            `fuse does not drop a still-significant addend across an opposite-sign borrow when the product is a power of ten`()
+        {
             // Same off-by-one argument as the Format128 case (see
             // Format128.Arithmetic.swift's revision 3 tests for the full
             // borrow-cascade derivation): x = 1E8, y = 1E0, so the unrounded
@@ -232,9 +385,21 @@ extension Decimal.Format32.Test {
             // `Decimal.Format32` comparison is raw-`bits` equality between two
             // `encode(...)` calls, so the KNOWN INTERACTION BID Form-2 decode
             // bug documented in Format32.Text.swift is not in play here.
-            let x = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(8), coefficient: 1)
-            let y = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let z = Decimal.Format32.encode(sign: .negative, exponent: Decimal.Exponent(0), coefficient: 6)
+            let x = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(8),
+                coefficient: 1
+            )
+            let y = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let z = Decimal.Format32.encode(
+                sign: .negative,
+                exponent: Decimal.Exponent(0),
+                coefficient: 6
+            )
             let result = x.operation.fuse(y, z)
             let expected = Decimal.Format32.encode(
                 sign: .positive,
@@ -249,7 +414,10 @@ extension Decimal.Format32.Test {
         // MARK: - Revision 5 Item 2 (swift-decimal-primitives pin bump,
         // BID Form-2 decode)
 
-        @Test func `fuse does not corrupt a Form-2-encoded coefficient input via the swift-decimal-primitives BID Form-2 decode bug`() {
+        @Test
+        func
+            `fuse does not corrupt a Form-2-encoded coefficient input via the swift-decimal-primitives BID Form-2 decode bug`()
+        {
             // swift-decimals' Package.resolved previously pinned
             // `swift-decimal-primitives` at a commit that PREDATES that
             // package's own `c729bec` fix ("BID Form-2 decode reads wrong
@@ -268,11 +436,27 @@ extension Decimal.Format32.Test {
             // z (0.1, seven orders of magnitude below the 7-digit
             // precision boundary) should leave the result numerically
             // unchanged.
-            let x = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 8_665_773)
-            let y = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let z = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(-1), coefficient: 1)
+            let x = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 8_665_773
+            )
+            let y = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let z = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-1),
+                coefficient: 1
+            )
             let result = x.operation.fuse(y, z)
-            let expected = Decimal.Format32.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 8_665_773)
+            let expected = Decimal.Format32.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 8_665_773
+            )
             #expect(!result.value.test.nan)
             #expect(!result.value.test.infinite)
             #expect(result.value == expected)

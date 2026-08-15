@@ -11,30 +11,63 @@ extension Decimal.Format128.Test {
             // exponent difference of 70 matches the old fixed threshold
             // (`diff.rawValue > 70`) in Add.swift; scaling coeffA by 10^70 overflows
             // UInt128 partway through the naive multiply loop (F-002).
-            let a = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let b = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(-70), coefficient: 1)
+            let a = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let b = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-70),
+                coefficient: 1
+            )
             let result = a.operation.add(b)
             #expect(!result.value.test.nan)
         }
 
         // MARK: - Fuse
 
-        @Test func `fuse does not silently combine unaligned coefficients when exponent difference exceeds old cutoff`() {
+        @Test
+        func
+            `fuse does not silently combine unaligned coefficients when exponent difference exceeds old cutoff`()
+        {
             // x*y = 1 at exponent 0; z = 1 at exponent -100. The exponent difference
             // (100) exceeds the old fixed cutoff (`diff.rawValue <= 70`), which used
             // to leave both coefficients unscaled and combine them as if they shared
             // an exponent, yielding 1 + 1 = 2 instead of the correct (product
             // dominates; z is negligible beyond Format128's 34-digit precision) ~1 (F-003).
-            let x = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let y = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let z = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(-100), coefficient: 1)
+            let x = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let y = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let z = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-100),
+                coefficient: 1
+            )
             let result = x.operation.fuse(y, z)
-            #expect(result.value == Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1))
+            #expect(
+                result.value
+                    == Decimal.Format128.encode(
+                        sign: .positive,
+                        exponent: Decimal.Exponent(0),
+                        coefficient: 1
+                    )
+            )
         }
 
         // MARK: - F-002/F-003 revision 1 (orchestrator-directed)
 
-        @Test func `addition computes the exact sum within the guard-digit window instead of dropping a still-significant operand`() {
+        @Test
+        func
+            `addition computes the exact sum within the guard-digit window instead of dropping a still-significant operand`()
+        {
             // F-002 revision 1: Format128's headroom above its own precision
             // (UInt128's ~38-39 digit capacity minus this format's 34-digit
             // precision — only ~4-5 digits) is too narrow to assume the smaller
@@ -68,19 +101,33 @@ extension Decimal.Format128.Test {
             #expect(result.status.contains(.inexact))
         }
 
-        @Test func `addition beyond the guard-digit window folds the discarded operand into the rounding decision as sticky`() {
+        @Test
+        func
+            `addition beyond the guard-digit window folds the discarded operand into the rounding decision as sticky`()
+        {
             // Beyond `precision + 2` (36), the discarded operand cannot change
             // any retained or guard digit of the dominant operand (already
             // valid at <= 34 digits), so the shortcut is sound — but it must
             // still raise `.inexact` for the discarded, nonzero operand.
-            let a = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let b = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(-40), coefficient: 1)
+            let a = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let b = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(-40),
+                coefficient: 1
+            )
             let result = a.operation.add(b)
             #expect(result.value == a)
             #expect(result.status.contains(.inexact))
         }
 
-        @Test func `fuse computes the exact sum within the guard-digit window instead of dropping a still-significant operand`() {
+        @Test
+        func
+            `fuse computes the exact sum within the guard-digit window instead of dropping a still-significant operand`()
+        {
             // Same guard-digit argument as add() above, generalized to fuse()
             // via x=1 (so the product is exactly y, and this branch — z's
             // exponent exceeds the product's — mirrors add()'s own scale-the-
@@ -95,7 +142,11 @@ extension Decimal.Format128.Test {
             // reproduce the pre-revision bug — the pre-revision fallback only
             // fires once scaling would actually overflow UInt128, which needs
             // gap > headroom, not merely gap < the new guard window.
-            let x = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
+            let x = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
             let y = Decimal.Format128.encode(
                 sign: .positive,
                 exponent: Decimal.Exponent(0),
@@ -119,7 +170,10 @@ extension Decimal.Format128.Test {
 
         // MARK: - F-002/F-003 revision 2 (digit-position-aware decision)
 
-        @Test func `addition still computes the exact sum when the near operand has fewer digits than the fixed guard window assumed`() {
+        @Test
+        func
+            `addition still computes the exact sum when the near operand has fewer digits than the fixed guard window assumed`()
+        {
             // Revision 1's `precision + 2` fixed guard-digit window (36 for
             // Format128) assumed the near/dominant operand always carries
             // close to `precision` digits of its own. It does not: here B has
@@ -147,7 +201,11 @@ extension Decimal.Format128.Test {
                 exponent: Decimal.Exponent(0),
                 coefficient: 5_000_000_000_000_000_000_000_000_000_000_000
             )
-            let b = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(36), coefficient: 1)
+            let b = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(36),
+                coefficient: 1
+            )
             let result = a.operation.add(b)
             let expected = Decimal.Format128.encode(
                 sign: .positive,
@@ -159,7 +217,10 @@ extension Decimal.Format128.Test {
             #expect(!result.status.contains(.inexact))
         }
 
-        @Test func `fuse still computes the exact sum when the product has fewer digits than the fixed guard window assumed`() {
+        @Test
+        func
+            `fuse still computes the exact sum when the product has fewer digits than the fixed guard window assumed`()
+        {
             // Same digit-position argument as the add() case immediately
             // above, generalized to fuse(): x = y = 1, so the unrounded
             // product is exactly 1 (1 digit) at exponent 0 — the dominant
@@ -175,8 +236,16 @@ extension Decimal.Format128.Test {
             // Expected value verified by independent bignum arithmetic
             // (Python): the exact sum needs only 34 significant digits, so
             // this is again a lossless (non-`.inexact`) result.
-            let x = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let y = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
+            let x = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let y = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
             let z = Decimal.Format128.encode(
                 sign: .positive,
                 exponent: Decimal.Exponent(-50),
@@ -196,7 +265,10 @@ extension Decimal.Format128.Test {
         // MARK: - F-002/F-003 revision 5 (product-dominates same-sign
         // near-tie widening, [INST-TEST-013])
 
-        @Test func `fuse rounds a same-sign near tie in the product's own digits correctly when z is not negligible`() {
+        @Test
+        func
+            `fuse rounds a same-sign near tie in the product's own digits correctly when z is not negligible`()
+        {
             // Revision 4 fixed the opposite-sign sign-drop but deliberately
             // left the SAME-SIGN drop path bit-for-bit unchanged (bare
             // `threshold`, no widening). That path is unsound too: once
@@ -252,7 +324,10 @@ extension Decimal.Format128.Test {
         // MARK: - F-002/F-003 revision 4 (product-dominates opposite-sign
         // exact-tie sign drop, [INST-TEST-013])
 
-        @Test func `fuse rounds an exact tie in the product's own digits toward the correct side when z is opposite sign`() {
+        @Test
+        func
+            `fuse rounds an exact tie in the product's own digits toward the correct side when z is opposite sign`()
+        {
             // Revision 3 fixed the off-by-one in the drop DECISION threshold.
             // This is a DIFFERENT defect in the drop COMPUTATION: once the
             // decision routes to the drop path, the code rounds the bare
@@ -287,8 +362,16 @@ extension Decimal.Format128.Test {
                 exponent: Decimal.Exponent(0),
                 coefficient: 4_000_000_000_000_000_000_000_000_000_000_001
             )
-            let y = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 5)
-            let z = Decimal.Format128.encode(sign: .negative, exponent: Decimal.Exponent(-2), coefficient: 1)
+            let y = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 5
+            )
+            let z = Decimal.Format128.encode(
+                sign: .negative,
+                exponent: Decimal.Exponent(-2),
+                coefficient: 1
+            )
             let result = x.operation.fuse(y, z)
             let wrongPreFix = Decimal.Format128.encode(
                 sign: .positive,
@@ -306,7 +389,10 @@ extension Decimal.Format128.Test {
 
         // MARK: - F-002/F-003 revision 3 (opposite-sign borrow off-by-one)
 
-        @Test func `addition does not drop a still-significant operand across an opposite-sign borrow through a power-of-ten leading digit`() {
+        @Test
+        func
+            `addition does not drop a still-significant operand across an opposite-sign borrow through a power-of-ten leading digit`()
+        {
             // Revision 2's digit-position-aware threshold (`diff > digits(far) -
             // digits(near) + precision`) is sound for SAME-sign addition, but
             // off by one for OPPOSITE-sign addition (effective subtraction)
@@ -327,8 +413,16 @@ extension Decimal.Format128.Test {
             // bare B. Expected value verified by independent bignum arithmetic
             // (Python: `Decimal(-6) + Decimal('1e35')`, rounded to 34
             // significant digits), not by the implementation under test.
-            let a = Decimal.Format128.encode(sign: .negative, exponent: Decimal.Exponent(0), coefficient: 6)
-            let b = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(35), coefficient: 1)
+            let a = Decimal.Format128.encode(
+                sign: .negative,
+                exponent: Decimal.Exponent(0),
+                coefficient: 6
+            )
+            let b = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(35),
+                coefficient: 1
+            )
             let result = a.operation.add(b)
             let expected = Decimal.Format128.encode(
                 sign: .positive,
@@ -340,7 +434,10 @@ extension Decimal.Format128.Test {
             #expect(result.status.contains(.inexact))
         }
 
-        @Test func `fuse does not drop a still-significant addend across an opposite-sign borrow when the product is a power of ten`() {
+        @Test
+        func
+            `fuse does not drop a still-significant addend across an opposite-sign borrow when the product is a power of ten`()
+        {
             // Same borrow-cascade argument as the addition case immediately
             // above, generalized to fuse(): x = 1E35, y = 1E0, so the
             // unrounded product is exactly 1 (digitsNear = 1) at exponent 35 —
@@ -353,9 +450,21 @@ extension Decimal.Format128.Test {
             // 9999999999999999999999999999999999E1 as the addition case above.
             // Expected value verified by independent bignum arithmetic
             // (Python).
-            let x = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(35), coefficient: 1)
-            let y = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 1)
-            let z = Decimal.Format128.encode(sign: .negative, exponent: Decimal.Exponent(0), coefficient: 6)
+            let x = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(35),
+                coefficient: 1
+            )
+            let y = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 1
+            )
+            let z = Decimal.Format128.encode(
+                sign: .negative,
+                exponent: Decimal.Exponent(0),
+                coefficient: 6
+            )
             let result = x.operation.fuse(y, z)
             let expected = Decimal.Format128.encode(
                 sign: .positive,
@@ -367,7 +476,10 @@ extension Decimal.Format128.Test {
             #expect(result.status.contains(.inexact))
         }
 
-        @Test func `fuse computes the exact sum without trapping at the new threshold's worst-case 74-digit Wide span`() {
+        @Test
+        func
+            `fuse computes the exact sum without trapping at the new threshold's worst-case 74-digit Wide span`()
+        {
             // Overflow-headroom check (revision 3 step 3): widening the
             // exact-vs-drop threshold by one digit widens the worst-case
             // `Decimals.Wide` span this exact branch can be asked to hold. The
@@ -405,8 +517,16 @@ extension Decimal.Format128.Test {
                 exponent: Decimal.Exponent(0),
                 coefficient: 9_999_999_999_999_999_999_999_999_999_999_999
             )
-            let y = Decimal.Format128.encode(sign: .positive, exponent: Decimal.Exponent(0), coefficient: 34_028)
-            let z = Decimal.Format128.encode(sign: .negative, exponent: Decimal.Exponent(73), coefficient: 1)
+            let y = Decimal.Format128.encode(
+                sign: .positive,
+                exponent: Decimal.Exponent(0),
+                coefficient: 34_028
+            )
+            let z = Decimal.Format128.encode(
+                sign: .negative,
+                exponent: Decimal.Exponent(73),
+                coefficient: 1
+            )
             let result = x.operation.fuse(y, z)
             let expected = Decimal.Format128.encode(
                 sign: .negative,

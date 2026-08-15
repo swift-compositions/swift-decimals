@@ -10,7 +10,10 @@ extension Decimal.Operation where Value == Decimal.Format32 {
 
         // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
-            let payload = a.test.signaling ? Decimal.Payload(UInt64(a.extractCoefficient())) : Decimal.Payload(UInt64(b.extractCoefficient()))
+            let payload =
+                a.test.signaling
+                ? Decimal.Payload(UInt64(a.extractCoefficient()))
+                : Decimal.Payload(UInt64(b.extractCoefficient()))
             return Decimal.Outcome(value: .nan(kind: .quiet, payload: payload), status: .invalid)
         }
 
@@ -101,12 +104,18 @@ extension Decimal.Operation where Value == Decimal.Format32 {
 
         // 10. Check for overflow
         if finalExp > context.maxExponent {
-            return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+            return Decimal.Outcome(
+                value: .infinity(sign: resultSign),
+                status: status.union(Decimal.Status.overflow)
+            )
         }
 
         // 11. Check for underflow
         if finalExp < context.minExponent {
-            return Decimal.Outcome(value: .zero(sign: resultSign), status: status.union(Decimal.Status.underflow))
+            return Decimal.Outcome(
+                value: .zero(sign: resultSign),
+                status: status.union(Decimal.Status.underflow)
+            )
         }
 
         // 12. Encode result
@@ -135,7 +144,9 @@ extension Decimal.Operation where Value == Decimal.Format64 {
 
         // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
-            let payload = a.test.signaling ? Decimal.Payload(a.extractCoefficient()) : Decimal.Payload(b.extractCoefficient())
+            let payload =
+                a.test.signaling
+                ? Decimal.Payload(a.extractCoefficient()) : Decimal.Payload(b.extractCoefficient())
             return Decimal.Outcome(value: .nan(kind: .quiet, payload: payload), status: .invalid)
         }
 
@@ -233,12 +244,18 @@ extension Decimal.Operation where Value == Decimal.Format64 {
 
         // 10. Check for overflow
         if finalExp > context.maxExponent {
-            return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+            return Decimal.Outcome(
+                value: .infinity(sign: resultSign),
+                status: status.union(Decimal.Status.overflow)
+            )
         }
 
         // 11. Check for underflow
         if finalExp < context.minExponent {
-            return Decimal.Outcome(value: .zero(sign: resultSign), status: status.union(Decimal.Status.underflow))
+            return Decimal.Outcome(
+                value: .zero(sign: resultSign),
+                status: status.union(Decimal.Status.underflow)
+            )
         }
 
         // 12. Encode result
@@ -266,7 +283,10 @@ extension Decimal.Operation where Value == Decimal.Format128 {
 
         // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
-            let payload = a.test.signaling ? Decimal.Payload(UInt64(truncatingIfNeeded: a.extractCoefficient())) : Decimal.Payload(UInt64(truncatingIfNeeded: b.extractCoefficient()))
+            let payload =
+                a.test.signaling
+                ? Decimal.Payload(UInt64(truncatingIfNeeded: a.extractCoefficient()))
+                : Decimal.Payload(UInt64(truncatingIfNeeded: b.extractCoefficient()))
             return Decimal.Outcome(value: .nan(kind: .quiet, payload: payload), status: .invalid)
         }
 
@@ -357,12 +377,18 @@ extension Decimal.Operation where Value == Decimal.Format128 {
 
         // 10. Check for overflow
         if finalExp > context.maxExponent {
-            return Decimal.Outcome(value: .infinity(sign: resultSign), status: status.union(Decimal.Status.overflow))
+            return Decimal.Outcome(
+                value: .infinity(sign: resultSign),
+                status: status.union(Decimal.Status.overflow)
+            )
         }
 
         // 11. Check for underflow
         if finalExp < context.minExponent {
-            return Decimal.Outcome(value: .zero(sign: resultSign), status: status.union(Decimal.Status.underflow))
+            return Decimal.Outcome(
+                value: .zero(sign: resultSign),
+                status: status.union(Decimal.Status.underflow)
+            )
         }
 
         // 12. Encode result
