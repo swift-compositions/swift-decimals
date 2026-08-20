@@ -1,6 +1,6 @@
 // MARK: - Format64 Numeric Conformance
 
-extension Decimal.Format64: ExpressibleByIntegerLiteral {
+extension Decimal.Format64: @retroactive ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int64) {
         // `swift-decimal-primitives`' `Decimal.Format64.init?(_ value: Int64)`
         // became failable as part of that package's own F-004 fix (revision
@@ -16,7 +16,7 @@ extension Decimal.Format64: ExpressibleByIntegerLiteral {
     }
 }
 
-extension Decimal.Format64: AdditiveArithmetic {
+extension Decimal.Format64: @retroactive AdditiveArithmetic {
     public static var zero: Self { .zero() }
 
     public static func + (lhs: Self, rhs: Self) -> Self {
@@ -51,7 +51,7 @@ extension Decimal.Format64: Swift.Numeric {
     }
 }
 
-extension Decimal.Format64: SignedNumeric {
+extension Decimal.Format64: @retroactive SignedNumeric {
     public mutating func negate() {
         self = negated
     }
@@ -63,7 +63,7 @@ extension Decimal.Format64: SignedNumeric {
 
 // MARK: - Format32 Numeric Conformance
 
-extension Decimal.Format32: ExpressibleByIntegerLiteral {
+extension Decimal.Format32: @retroactive ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int32) {
         if value == 0 {
             self = .zero()
@@ -82,7 +82,7 @@ extension Decimal.Format32: ExpressibleByIntegerLiteral {
     }
 }
 
-extension Decimal.Format32: AdditiveArithmetic {
+extension Decimal.Format32: @retroactive AdditiveArithmetic {
     public static var zero: Self { .zero() }
 
     public static func + (lhs: Self, rhs: Self) -> Self {
@@ -117,7 +117,7 @@ extension Decimal.Format32: Swift.Numeric {
     }
 }
 
-extension Decimal.Format32: SignedNumeric {
+extension Decimal.Format32: @retroactive SignedNumeric {
     public mutating func negate() {
         self = negated
     }
@@ -129,7 +129,7 @@ extension Decimal.Format32: SignedNumeric {
 
 // MARK: - Format128 Numeric Conformance
 
-extension Decimal.Format128: ExpressibleByIntegerLiteral {
+extension Decimal.Format128: @retroactive ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int64) {
         if value == 0 {
             self = .zero()
@@ -148,7 +148,7 @@ extension Decimal.Format128: ExpressibleByIntegerLiteral {
     }
 }
 
-extension Decimal.Format128: AdditiveArithmetic {
+extension Decimal.Format128: @retroactive AdditiveArithmetic {
     public static var zero: Self { .zero() }
 
     public static func + (lhs: Self, rhs: Self) -> Self {
@@ -183,7 +183,7 @@ extension Decimal.Format128: Swift.Numeric {
     }
 }
 
-extension Decimal.Format128: SignedNumeric {
+extension Decimal.Format128: @retroactive SignedNumeric {
     public mutating func negate() {
         self = negated
     }
