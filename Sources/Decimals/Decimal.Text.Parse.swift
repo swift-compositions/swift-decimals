@@ -1,5 +1,5 @@
 extension Decimal.Text.Parse where Value == Decimal.Format64 {
-    /// Parse from contiguous bytes (canonical input substrate)
+
     public func callAsFunction(
         _ bytes: UnsafeBufferPointer<UInt8>,
         context: Decimal.Context = .format64
@@ -10,7 +10,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
 
         var index = 0
 
-        // Parse optional sign
         var sign: Decimal.Sign = .positive
         if index < bytes.count {
             if unsafe bytes[index] == UInt8(ascii: "-") {
@@ -25,10 +24,8 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
             throw .syntax(offset: index)
         }
 
-        // Check for special values
         let remaining = bytes.count - index
 
-        // Check for "Infinity" or "Inf"
         if remaining >= 3 {
             let i = unsafe bytes[index]
             let n = unsafe bytes[index + 1]
@@ -37,9 +34,9 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
                 && (n == UInt8(ascii: "n") || n == UInt8(ascii: "N"))
                 && (f == UInt8(ascii: "f") || f == UInt8(ascii: "F"))
             {
-                // Could be "Inf" or "Infinity"
+
                 if remaining >= 8 {
-                    // Check full "Infinity"
+
                     let rest = unsafe [
                         bytes[index + 3], bytes[index + 4], bytes[index + 5], bytes[index + 6],
                         bytes[index + 7],
@@ -61,10 +58,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
             }
         }
 
-        // Check for "NaN". Must be the entire remaining input — trailing bytes
-        // after "NaN" are syntax errors, not silently accepted (F-005) — and the
-        // parsed sign carries through to the NaN's sign bit instead of being
-        // discarded (F-005).
         if remaining >= 3 {
             let n1 = unsafe bytes[index]
             let a = unsafe bytes[index + 1]
@@ -81,14 +74,12 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
             }
         }
 
-        // Parse numeric value
         var coefficient: UInt64 = 0
         var exponent: Int = 0
         var hasDigits = false
         var decimalPos: Int? = nil
         var digitCount = 0
 
-        // Parse integer part and optional fractional part
         while index < bytes.count {
             let byte = unsafe bytes[index]
 
@@ -96,12 +87,11 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
                 hasDigits = true
                 let digit = UInt64(byte - UInt8(ascii: "0"))
 
-                // Check for coefficient overflow
-                if digitCount < 19 {  // UInt64 max is 20 digits
+                if digitCount < 19 {
                     coefficient = coefficient * 10 + digit
                     digitCount += 1
                 } else {
-                    // Overflow - increment exponent
+
                     if decimalPos == nil {
                         exponent += 1
                     }
@@ -122,12 +112,10 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
             throw .syntax(offset: index)
         }
 
-        // Adjust exponent for decimal point position
         if let dp = decimalPos {
             exponent -= (digitCount - dp)
         }
 
-        // Parse optional exponent
         if index < bytes.count {
             let byte = unsafe bytes[index]
             if byte == UInt8(ascii: "E") || byte == UInt8(ascii: "e") {
@@ -149,12 +137,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
                     throw .syntax(offset: index)
                 }
 
-                // Bound exponent-digit accumulation well below Int's range so an
-                // arbitrarily long exponent-digit string (legal syntax, e.g. "E"
-                // followed by dozens of digits) saturates a sentinel instead of
-                // trapping via Int multiplication/addition overflow (F-005). The
-                // sentinel is far beyond any format's maxExponent/minExponent, so
-                // saturating it still correctly resolves to .high/.low below.
                 let expSentinel = 1_000_000_000
                 var expValue = 0
                 var expTooLarge = false
@@ -186,22 +168,14 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
             }
         }
 
-        // Check for trailing garbage
         guard index == bytes.count else {
             throw .syntax(offset: index)
         }
 
-        // Handle zero
         if coefficient == 0 {
             return .zero(sign: sign)
         }
 
-        // Round the parsed coefficient to the format's precision through the
-        // shared rounding kernel before encoding. The digit-accumulation loop
-        // above only guards against overflowing UInt64 itself (up to 19 digits),
-        // which is far more than Format64's 16-digit precision; passing an
-        // over-precision coefficient straight to encode() silently corrupts the
-        // bit pattern instead of correctly rounding (F-005).
         let (roundedCoefficient, roundedExponent, _) = Decimals.Rounding.round(
             coefficient: UInt128(coefficient),
             exponent: Decimal.Exponent(exponent),
@@ -210,7 +184,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
             precision: context.precision
         )
 
-        // Check exponent bounds using the (possibly rounding-adjusted) exponent
         if roundedExponent > context.maxExponent {
             throw .high
         }
@@ -221,7 +194,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
         return Value.encode(sign: sign, exponent: roundedExponent, coefficient: roundedCoefficient)
     }
 
-    /// Parse from ArraySlice (common case)
     public func callAsFunction(
         _ bytes: ArraySlice<UInt8>,
         context: Decimal.Context = .format64
@@ -239,7 +211,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
         return try result.get()
     }
 
-    /// Parse from Array (convenience)
     public func callAsFunction(
         _ bytes: [UInt8],
         context: Decimal.Context = .format64
@@ -258,10 +229,8 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
     }
 }
 
-// MARK: - Format32 Parsing
-
 extension Decimal.Text.Parse where Value == Decimal.Format32 {
-    /// Parse from contiguous bytes (canonical input substrate)
+
     public func callAsFunction(
         _ bytes: UnsafeBufferPointer<UInt8>,
         context: Decimal.Context = .format32
@@ -272,7 +241,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
 
         var index = 0
 
-        // Parse optional sign
         var sign: Decimal.Sign = .positive
         if index < bytes.count {
             if unsafe bytes[index] == UInt8(ascii: "-") {
@@ -287,10 +255,8 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
             throw .syntax(offset: index)
         }
 
-        // Check for special values
         let remaining = bytes.count - index
 
-        // Check for "Infinity" or "Inf"
         if remaining >= 3 {
             let i = unsafe bytes[index]
             let n = unsafe bytes[index + 1]
@@ -321,10 +287,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
             }
         }
 
-        // Check for "NaN". Must be the entire remaining input — trailing bytes
-        // after "NaN" are syntax errors, not silently accepted (F-005) — and the
-        // parsed sign carries through to the NaN's sign bit instead of being
-        // discarded (F-005).
         if remaining >= 3 {
             let n1 = unsafe bytes[index]
             let a = unsafe bytes[index + 1]
@@ -341,7 +303,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
             }
         }
 
-        // Parse numeric value
         var coefficient: UInt32 = 0
         var exponent: Int = 0
         var hasDigits = false
@@ -355,7 +316,7 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
                 hasDigits = true
                 let digit = UInt32(byte - UInt8(ascii: "0"))
 
-                if digitCount < 9 {  // UInt32 max is 10 digits, but we need headroom
+                if digitCount < 9 {
                     coefficient = coefficient * 10 + digit
                     digitCount += 1
                 } else {
@@ -383,7 +344,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
             exponent -= (digitCount - dp)
         }
 
-        // Parse optional exponent
         if index < bytes.count {
             let byte = unsafe bytes[index]
             if byte == UInt8(ascii: "E") || byte == UInt8(ascii: "e") {
@@ -405,12 +365,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
                     throw .syntax(offset: index)
                 }
 
-                // Bound exponent-digit accumulation well below Int's range so an
-                // arbitrarily long exponent-digit string (legal syntax, e.g. "E"
-                // followed by dozens of digits) saturates a sentinel instead of
-                // trapping via Int multiplication/addition overflow (F-005). The
-                // sentinel is far beyond any format's maxExponent/minExponent, so
-                // saturating it still correctly resolves to .high/.low below.
                 let expSentinel = 1_000_000_000
                 var expValue = 0
                 var expTooLarge = false
@@ -450,12 +404,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
             return .zero(sign: sign)
         }
 
-        // Round the parsed coefficient to the format's precision through the
-        // shared rounding kernel before encoding. The digit-accumulation loop
-        // above only guards against overflowing UInt32 itself (up to 9 digits),
-        // which is more than Format32's 7-digit precision; passing an
-        // over-precision coefficient straight to encode() silently corrupts the
-        // bit pattern instead of correctly rounding (F-005).
         let (roundedCoefficient, roundedExponent, _) = Decimals.Rounding.round(
             coefficient: UInt64(coefficient),
             exponent: Decimal.Exponent(exponent),
@@ -464,7 +412,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
             precision: context.precision
         )
 
-        // Check exponent bounds using the (possibly rounding-adjusted) exponent
         if roundedExponent > context.maxExponent {
             throw .high
         }
@@ -475,7 +422,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
         return Value.encode(sign: sign, exponent: roundedExponent, coefficient: roundedCoefficient)
     }
 
-    /// Parse from ArraySlice (common case)
     public func callAsFunction(
         _ bytes: ArraySlice<UInt8>,
         context: Decimal.Context = .format32
@@ -493,7 +439,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
         return try result.get()
     }
 
-    /// Parse from Array (convenience)
     public func callAsFunction(
         _ bytes: [UInt8],
         context: Decimal.Context = .format32
@@ -512,10 +457,8 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
     }
 }
 
-// MARK: - Format128 Parsing
-
 extension Decimal.Text.Parse where Value == Decimal.Format128 {
-    /// Parse from contiguous bytes (canonical input substrate)
+
     public func callAsFunction(
         _ bytes: UnsafeBufferPointer<UInt8>,
         context: Decimal.Context = .format128
@@ -526,7 +469,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
 
         var index = 0
 
-        // Parse optional sign
         var sign: Decimal.Sign = .positive
         if index < bytes.count {
             if unsafe bytes[index] == UInt8(ascii: "-") {
@@ -541,10 +483,8 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
             throw .syntax(offset: index)
         }
 
-        // Check for special values
         let remaining = bytes.count - index
 
-        // Check for "Infinity" or "Inf"
         if remaining >= 3 {
             let i = unsafe bytes[index]
             let n = unsafe bytes[index + 1]
@@ -575,10 +515,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
             }
         }
 
-        // Check for "NaN". Must be the entire remaining input — trailing bytes
-        // after "NaN" are syntax errors, not silently accepted (F-005) — and the
-        // parsed sign carries through to the NaN's sign bit instead of being
-        // discarded (F-005).
         if remaining >= 3 {
             let n1 = unsafe bytes[index]
             let a = unsafe bytes[index + 1]
@@ -595,7 +531,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
             }
         }
 
-        // Parse numeric value
         var coefficient: UInt128 = 0
         var exponent: Int = 0
         var hasDigits = false
@@ -609,7 +544,7 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
                 hasDigits = true
                 let digit = UInt128(byte - UInt8(ascii: "0"))
 
-                if digitCount < 38 {  // UInt128 max is 39 digits
+                if digitCount < 38 {
                     coefficient = coefficient * 10 + digit
                     digitCount += 1
                 } else {
@@ -637,7 +572,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
             exponent -= (digitCount - dp)
         }
 
-        // Parse optional exponent
         if index < bytes.count {
             let byte = unsafe bytes[index]
             if byte == UInt8(ascii: "E") || byte == UInt8(ascii: "e") {
@@ -659,12 +593,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
                     throw .syntax(offset: index)
                 }
 
-                // Bound exponent-digit accumulation well below Int's range so an
-                // arbitrarily long exponent-digit string (legal syntax, e.g. "E"
-                // followed by dozens of digits) saturates a sentinel instead of
-                // trapping via Int multiplication/addition overflow (F-005). The
-                // sentinel is far beyond any format's maxExponent/minExponent, so
-                // saturating it still correctly resolves to .high/.low below.
                 let expSentinel = 1_000_000_000
                 var expValue = 0
                 var expTooLarge = false
@@ -704,12 +632,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
             return .zero(sign: sign)
         }
 
-        // Round the parsed coefficient to the format's precision through the
-        // shared rounding kernel before encoding. The digit-accumulation loop
-        // above only guards against overflowing UInt128 itself (up to 38 digits),
-        // which is more than Format128's 34-digit precision; passing an
-        // over-precision coefficient straight to encode() silently corrupts the
-        // bit pattern instead of correctly rounding (F-005).
         let (roundedCoefficient, roundedExponent, _) = Decimals.Rounding.round128(
             coefficient: coefficient,
             exponent: Decimal.Exponent(exponent),
@@ -718,7 +640,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
             precision: context.precision
         )
 
-        // Check exponent bounds using the (possibly rounding-adjusted) exponent
         if roundedExponent > context.maxExponent {
             throw .high
         }
@@ -729,7 +650,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
         return Value.encode(sign: sign, exponent: roundedExponent, coefficient: roundedCoefficient)
     }
 
-    /// Parse from ArraySlice (common case)
     public func callAsFunction(
         _ bytes: ArraySlice<UInt8>,
         context: Decimal.Context = .format128
@@ -747,7 +667,6 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
         return try result.get()
     }
 
-    /// Parse from Array (convenience)
     public func callAsFunction(
         _ bytes: [UInt8],
         context: Decimal.Context = .format128

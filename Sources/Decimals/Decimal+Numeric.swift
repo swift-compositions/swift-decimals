@@ -1,17 +1,6 @@
-// MARK: - Format64 Numeric Conformance
-
 extension Decimal.Format64: @retroactive ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int64) {
-        // `swift-decimal-primitives`' `Decimal.Format64.init?(_ value: Int64)`
-        // became failable as part of that package's own F-004 fix (revision
-        // 5's Item 2 pin bump, `9545c17`): it now correctly rejects
-        // magnitudes that don't fit the format's 16-digit coefficient
-        // precision instead of silently truncating/corrupting them (the bug
-        // F-004 fixed). `ExpressibleByIntegerLiteral.init(integerLiteral:)`
-        // must be non-failable, so an out-of-range literal now traps here —
-        // strictly better than the prior silent corruption, and consistent
-        // with how out-of-range integer literals are handled elsewhere in
-        // Swift.
+
         self.init(value)!
     }
 }
@@ -61,8 +50,6 @@ extension Decimal.Format64: @retroactive SignedNumeric {
     }
 }
 
-// MARK: - Format32 Numeric Conformance
-
 extension Decimal.Format32: @retroactive ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int32) {
         if value == 0 {
@@ -73,8 +60,6 @@ extension Decimal.Format32: @retroactive ExpressibleByIntegerLiteral {
         let sign: Decimal.Sign = value < 0 ? .negative : .positive
         let magnitude = value < 0 ? UInt32(bitPattern: -value) : UInt32(value)
 
-        // BID encoding: store coefficient directly
-        // Exponent = 0 (biased = 101)
         let biasedExponent: UInt32 = 101
         let signBit: UInt32 = sign == .negative ? 0x8000_0000 : 0
 
@@ -127,8 +112,6 @@ extension Decimal.Format32: @retroactive SignedNumeric {
     }
 }
 
-// MARK: - Format128 Numeric Conformance
-
 extension Decimal.Format128: @retroactive ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int64) {
         if value == 0 {
@@ -139,8 +122,6 @@ extension Decimal.Format128: @retroactive ExpressibleByIntegerLiteral {
         let sign: Decimal.Sign = value < 0 ? .negative : .positive
         let magnitude = value < 0 ? UInt64(bitPattern: -value) : UInt64(value)
 
-        // BID encoding for 128-bit: coefficient in low word, exponent in high word
-        // Exponent = 0 (biased = 6176)
         let biasedExponent: UInt64 = 6176
         let signBit: UInt64 = sign == .negative ? 0x8000_0000_0000_0000 : 0
 

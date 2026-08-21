@@ -5,8 +5,6 @@ import Testing
 extension Decimal.Format64.Test {
     @Suite struct Text {
 
-        // MARK: - Parsing
-
         @Test func `parse Integer`() throws {
             let value = try Decimal.Format64.text([UInt8]("123".utf8))
             #expect(Int64(exactly: value) == 123)
@@ -19,8 +17,8 @@ extension Decimal.Format64.Test {
 
         @Test func `parse Decimal`() throws {
             let value = try Decimal.Format64.text([UInt8]("12.5".utf8))
-            // 12.5 = 125 * 10^-1
-            let doubled = value + value  // 25
+
+            let doubled = value + value
             #expect(Int64(exactly: doubled) == 25)
         }
 
@@ -57,13 +55,8 @@ extension Decimal.Format64.Test {
             }
         }
 
-        // MARK: - Parsing / Edge Case
-
         @Test func `parse exponent digit overflow resolves to high instead of trapping`() {
-            // A 25-digit exponent-digit string is legal grammar but would overflow
-            // Int's `expValue * 10 + digit` accumulation and trap (F-005). It must
-            // instead cleanly resolve to .high (the exponent is obviously far
-            // beyond any format's range).
+
             #expect(throws: Decimal._TextError.high) {
                 _ = try Decimal.Format64.text([UInt8]("1E9999999999999999999999999".utf8))
             }
@@ -76,16 +69,14 @@ extension Decimal.Format64.Test {
         }
 
         @Test func `parse NaN rejects trailing garbage`() {
-            // "NaN" followed by anything else is not a valid NaN literal; it must
-            // not be silently accepted as one (F-005).
+
             #expect(throws: Decimal._TextError.self) {
                 _ = try Decimal.Format64.text([UInt8]("NaN123garbage".utf8))
             }
         }
 
         @Test func `parse NaN preserves sign`() throws {
-            // "-NaN" previously always returned an unsigned (positive) NaN,
-            // discarding the parsed sign (F-005).
+
             let value = try Decimal.Format64.text([UInt8]("-NaN".utf8))
             #expect(value.test.nan)
             #expect(value.test.negative)
@@ -93,11 +84,7 @@ extension Decimal.Format64.Test {
 
         @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws
         {
-            // 17 significant digits; Format64's precision is 16. Passing the raw
-            // 17-digit coefficient straight to encode() (as the pre-fix code did)
-            // silently corrupts the bit pattern instead of correctly rounding
-            // (F-005). Correctly rounded (round-half-even, dropped digit 7 > 5
-            // rounds up): 1234567890123456 -> 1234567890123457, exponent 0 -> 1.
+
             let value = try Decimal.Format64.text([UInt8]("12345678901234567".utf8))
             let expected = Decimal.Format64.encode(
                 sign: .positive,
@@ -106,8 +93,6 @@ extension Decimal.Format64.Test {
             )
             #expect(value == expected)
         }
-
-        // MARK: - Rendering
 
         @Test func `render Integer`() {
             let value: Decimal.Format64 = 42
@@ -151,23 +136,11 @@ extension Decimal.Format64.Test {
             #expect(String(decoding: buffer, as: UTF8.self) == "NaN")
         }
 
-        // MARK: - Rendering / Edge Case
-        //
-        // NOTE: these tests deliberately stay within exponent [-383, 369] with
-        // coefficients below 2^53. Format64.encode/extractExponent/extractCoefficient
-        // (swift-decimal-primitives, a separate out-of-scope dependency repo) have a
-        // pre-existing Form1/Form2 BID-encoding round-trip bug for the small-coefficient,
-        // exponent-in-[370, 384] combination — see REPORT.md risk notes. That bug is not
-        // part of this brief's evidence and is not touched here; these tests route
-        // around it while still exercising the F-001 large-exponent buffer-capacity fix.
-
         @Test
         func
             `render appending does not overflow scratch buffer for large positive exponent plain style`()
         {
-            // coefficient 1, exponent 369 => plain rendering needs 1 digit + 369
-            // trailing zeros = 370 bytes, far beyond the old fixed 64-byte scratch
-            // buffer (F-001).
+
             let value = Decimal.Format64.encode(
                 sign: .positive,
                 exponent: Decimal.Exponent(369),
@@ -184,8 +157,7 @@ extension Decimal.Format64.Test {
         func
             `render appending does not overflow scratch buffer for min negative exponent plain style`()
         {
-            // coefficient 1, exponent = Format64.min (-383) => plain rendering needs
-            // "0." + 382 leading zeros + 1 digit + sign, also far beyond 64 bytes.
+
             let value = Decimal.Format64.encode(
                 sign: .negative,
                 exponent: Decimal.Exponent.Format64.min,
@@ -211,7 +183,7 @@ extension Decimal.Format64.Test {
         func
             `render appending scientific and engineering styles stay within bounds at large exponent`()
         {
-            // 16-digit coefficient (below 2^53, so Form1) at a large exponent.
+
             let value = Decimal.Format64.encode(
                 sign: .negative,
                 exponent: Decimal.Exponent(369),

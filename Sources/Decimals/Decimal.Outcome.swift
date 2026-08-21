@@ -15,7 +15,7 @@ extension Decimal.Outcome: Equatable where Value: Equatable {}
 extension Decimal.Outcome: Hashable where Value: Hashable {}
 
 extension Decimal.Outcome where Value: Sendable & Hashable {
-    /// Throws if any trapped flag is raised; trap carries the value
+
     public func trapped(by traps: Decimal.Status) throws(Decimal.Trap<Value>) -> Value {
         let raised = status.intersection(traps)
         if !raised.isEmpty {

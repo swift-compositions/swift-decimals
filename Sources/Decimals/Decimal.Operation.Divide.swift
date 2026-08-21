@@ -8,7 +8,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
 
         let resultSign: Decimal.Sign = (a.sign == b.sign) ? .positive : .negative
 
-        // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
             let payload =
                 a.test.signaling
@@ -24,7 +23,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 2. Handle infinity cases
         if a.test.infinite {
             if b.test.infinite {
                 return Decimal.Outcome(value: .nan(), status: .invalid)
@@ -32,7 +30,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             return Decimal.Outcome(value: .infinity(sign: resultSign), status: .none)
         }
 
-        // 3. Handle division by zero
         if b.test.zero {
             if a.test.zero {
                 return Decimal.Outcome(value: .nan(), status: .invalid)
@@ -40,23 +37,19 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             return Decimal.Outcome(value: .infinity(sign: resultSign), status: .divide)
         }
 
-        // 4. Handle zero dividend
         if a.test.zero {
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
 
-        // 5. x / ∞ = 0
         if b.test.infinite {
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
 
-        // 6. Extract components
         var coeffA = UInt64(a.extractCoefficient())
         let coeffB = UInt64(b.extractCoefficient())
         var expA = a.extractExponent()
         let expB = b.extractExponent()
 
-        // 7. Scale dividend for precision
         let targetDigits = context.precision.rawValue + 2
 
         var digitsA = 0
@@ -66,27 +59,20 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             temp /= 10
         }
 
-        let scaleUp = targetDigits + 7 - digitsA  // 7 is max digits in coeffB
+        let scaleUp = targetDigits + 7 - digitsA
         if scaleUp > 0 {
             for _ in 0..<scaleUp {
                 coeffA *= 10
             }
-            // No `-=` overload for Decimal.Exponent; `-` here is heterogeneous (Self, Int).
-            // swiftlint:disable:next shorthand_operator
+
             expA = expA - scaleUp
         }
 
-        // 8. Perform division
         let quotient = coeffA / coeffB
         let remainder = coeffA % coeffB
 
         let resultExp = expA - expB
 
-        // 9. Round to precision. `remainder` (the raw division remainder beyond the
-        // guard digits retained in `quotient`) is passed through as `sticky`: it
-        // tells the rounding kernel the quotient was already truncated once, so an
-        // apparent exact tie at the rounding boundary is actually slightly more
-        // than half — without this, ties could be double-rounded incorrectly (F-003).
         var status: Decimal.Status = .none
         if remainder != 0 {
             status = .inexact
@@ -102,7 +88,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
         )
         status = status.union(roundStatus)
 
-        // 10. Check for overflow
         if finalExp > context.maxExponent {
             return Decimal.Outcome(
                 value: .infinity(sign: resultSign),
@@ -110,7 +95,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             )
         }
 
-        // 11. Check for underflow
         if finalExp < context.minExponent {
             return Decimal.Outcome(
                 value: .zero(sign: resultSign),
@@ -118,7 +102,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             )
         }
 
-        // 12. Encode result
         let result = Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff)
         return Decimal.Outcome(value: result, status: status)
     }
@@ -139,10 +122,8 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         let a = base
         let b = other
 
-        // Result sign: positive if same signs, negative if different
         let resultSign: Decimal.Sign = (a.sign == b.sign) ? .positive : .negative
 
-        // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
             let payload =
                 a.test.signaling
@@ -157,46 +138,38 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 2. Handle infinity cases
         if a.test.infinite {
             if b.test.infinite {
-                // ∞ / ∞ = NaN (invalid)
+
                 return Decimal.Outcome(value: .nan(), status: .invalid)
             }
             return Decimal.Outcome(value: .infinity(sign: resultSign), status: .none)
         }
 
-        // 3. Handle division by zero
         if b.test.zero {
             if a.test.zero {
-                // 0 / 0 = NaN (invalid)
+
                 return Decimal.Outcome(value: .nan(), status: .invalid)
             }
-            // x / 0 = ∞ (divide by zero)
+
             return Decimal.Outcome(value: .infinity(sign: resultSign), status: .divide)
         }
 
-        // 4. Handle zero dividend
         if a.test.zero {
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
 
-        // 5. x / ∞ = 0
         if b.test.infinite {
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
 
-        // 6. Extract components
         var coeffA = UInt128(a.extractCoefficient())
         let coeffB = UInt128(b.extractCoefficient())
         var expA = a.extractExponent()
         let expB = b.extractExponent()
 
-        // 7. Scale dividend to get enough precision for division
-        // We need at least (precision + 1) digits in the quotient for proper rounding
         let targetDigits = context.precision.rawValue + 2
 
-        // Count digits in coeffA
         var digitsA = 0
         var temp = coeffA
         while temp > 0 {
@@ -204,29 +177,20 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             temp /= 10
         }
 
-        // Scale up coeffA if needed
-        let scaleUp = targetDigits + 16 - digitsA  // 16 is max digits in coeffB
+        let scaleUp = targetDigits + 16 - digitsA
         if scaleUp > 0 {
             for _ in 0..<scaleUp {
                 coeffA *= 10
             }
-            // No `-=` overload for Decimal.Exponent; `-` here is heterogeneous (Self, Int).
-            // swiftlint:disable:next shorthand_operator
+
             expA = expA - scaleUp
         }
 
-        // 8. Perform division
         let quotient = coeffA / coeffB
         let remainder = coeffA % coeffB
 
-        // Calculate result exponent
         let resultExp = expA - expB
 
-        // 9. Round to precision. `remainder` (the raw division remainder beyond the
-        // guard digits retained in `quotient`) is passed through as `sticky`: it
-        // tells the rounding kernel the quotient was already truncated once, so an
-        // apparent exact tie at the rounding boundary is actually slightly more
-        // than half — without this, ties could be double-rounded incorrectly (F-003).
         var status: Decimal.Status = .none
         if remainder != 0 {
             status = .inexact
@@ -242,7 +206,6 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         )
         status = status.union(roundStatus)
 
-        // 10. Check for overflow
         if finalExp > context.maxExponent {
             return Decimal.Outcome(
                 value: .infinity(sign: resultSign),
@@ -250,7 +213,6 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             )
         }
 
-        // 11. Check for underflow
         if finalExp < context.minExponent {
             return Decimal.Outcome(
                 value: .zero(sign: resultSign),
@@ -258,7 +220,6 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             )
         }
 
-        // 12. Encode result
         let result = Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff)
         return Decimal.Outcome(value: result, status: status)
     }
@@ -281,7 +242,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
 
         let resultSign: Decimal.Sign = (a.sign == b.sign) ? .positive : .negative
 
-        // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
             let payload =
                 a.test.signaling
@@ -297,7 +257,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 2. Handle infinity cases
         if a.test.infinite {
             if b.test.infinite {
                 return Decimal.Outcome(value: .nan(), status: .invalid)
@@ -305,7 +264,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             return Decimal.Outcome(value: .infinity(sign: resultSign), status: .none)
         }
 
-        // 3. Handle division by zero
         if b.test.zero {
             if a.test.zero {
                 return Decimal.Outcome(value: .nan(), status: .invalid)
@@ -313,23 +271,19 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             return Decimal.Outcome(value: .infinity(sign: resultSign), status: .divide)
         }
 
-        // 4. Handle zero dividend
         if a.test.zero {
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
 
-        // 5. x / ∞ = 0
         if b.test.infinite {
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
 
-        // 6. Extract components
         var coeffA = a.extractCoefficient()
         let coeffB = b.extractCoefficient()
         var expA = a.extractExponent()
         let expB = b.extractExponent()
 
-        // 7. Scale dividend for precision
         let targetDigits = context.precision.rawValue + 2
 
         var digitsA = 0
@@ -339,27 +293,20 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             temp /= 10
         }
 
-        let scaleUp = targetDigits + 34 - digitsA  // 34 is max digits in coeffB
+        let scaleUp = targetDigits + 34 - digitsA
         if scaleUp > 0 {
             for _ in 0..<scaleUp {
                 coeffA *= 10
             }
-            // No `-=` overload for Decimal.Exponent; `-` here is heterogeneous (Self, Int).
-            // swiftlint:disable:next shorthand_operator
+
             expA = expA - scaleUp
         }
 
-        // 8. Perform division
         let quotient = coeffA / coeffB
         let remainder = coeffA % coeffB
 
         let resultExp = expA - expB
 
-        // 9. Round to precision. `remainder` (the raw division remainder beyond the
-        // guard digits retained in `quotient`) is passed through as `sticky`: it
-        // tells the rounding kernel the quotient was already truncated once, so an
-        // apparent exact tie at the rounding boundary is actually slightly more
-        // than half — without this, ties could be double-rounded incorrectly (F-003).
         var status: Decimal.Status = .none
         if remainder != 0 {
             status = .inexact
@@ -375,7 +322,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
         )
         status = status.union(roundStatus)
 
-        // 10. Check for overflow
         if finalExp > context.maxExponent {
             return Decimal.Outcome(
                 value: .infinity(sign: resultSign),
@@ -383,7 +329,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             )
         }
 
-        // 11. Check for underflow
         if finalExp < context.minExponent {
             return Decimal.Outcome(
                 value: .zero(sign: resultSign),
@@ -391,7 +336,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             )
         }
 
-        // 12. Encode result
         let result = Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff)
         return Decimal.Outcome(value: result, status: status)
     }

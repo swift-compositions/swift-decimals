@@ -8,7 +8,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
 
         let resultSign: Decimal.Sign = (a.sign == b.sign) ? .positive : .negative
 
-        // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
             let payload =
                 a.test.signaling
@@ -24,7 +23,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 2. Handle infinity cases
         if a.test.infinite {
             if b.test.zero {
                 return Decimal.Outcome(value: .nan(), status: .invalid)
@@ -38,22 +36,18 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             return Decimal.Outcome(value: .infinity(sign: resultSign), status: .none)
         }
 
-        // 3. Handle zero cases
         if a.test.zero || b.test.zero {
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
 
-        // 4. Extract components
         let coeffA = UInt64(a.extractCoefficient())
         let coeffB = UInt64(b.extractCoefficient())
         let expA = a.extractExponent()
         let expB = b.extractExponent()
 
-        // 5. Multiply coefficients and add exponents
         let resultCoeff = coeffA * coeffB
         let resultExp = expA + expB
 
-        // 6. Round to precision
         let (finalCoeff, finalExp, status) = Decimals.Rounding.round(
             coefficient: resultCoeff,
             exponent: resultExp,
@@ -62,7 +56,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             precision: context.precision
         )
 
-        // 7. Check for overflow
         if finalExp > context.maxExponent {
             return Decimal.Outcome(
                 value: .infinity(sign: resultSign),
@@ -70,7 +63,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             )
         }
 
-        // 8. Check for underflow
         if finalExp < context.minExponent {
             return Decimal.Outcome(
                 value: .zero(sign: resultSign),
@@ -78,7 +70,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             )
         }
 
-        // 9. Encode result
         let result = Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff)
         return Decimal.Outcome(value: result, status: status)
     }
@@ -99,10 +90,8 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         let a = base
         let b = other
 
-        // Result sign: positive if same signs, negative if different
         let resultSign: Decimal.Sign = (a.sign == b.sign) ? .positive : .negative
 
-        // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
             let payload =
                 a.test.signaling
@@ -117,38 +106,33 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 2. Handle infinity cases
         if a.test.infinite {
             if b.test.zero {
-                // ∞ × 0 = NaN (invalid)
+
                 return Decimal.Outcome(value: .nan(), status: .invalid)
             }
             return Decimal.Outcome(value: .infinity(sign: resultSign), status: .none)
         }
         if b.test.infinite {
             if a.test.zero {
-                // 0 × ∞ = NaN (invalid)
+
                 return Decimal.Outcome(value: .nan(), status: .invalid)
             }
             return Decimal.Outcome(value: .infinity(sign: resultSign), status: .none)
         }
 
-        // 3. Handle zero cases
         if a.test.zero || b.test.zero {
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
 
-        // 4. Extract components
         let coeffA = UInt128(a.extractCoefficient())
         let coeffB = UInt128(b.extractCoefficient())
         let expA = a.extractExponent()
         let expB = b.extractExponent()
 
-        // 5. Multiply coefficients and add exponents
         let resultCoeff = coeffA * coeffB
         let resultExp = expA + expB
 
-        // 6. Round to precision
         let (finalCoeff, finalExp, status) = Decimals.Rounding.round(
             coefficient: resultCoeff,
             exponent: resultExp,
@@ -157,7 +141,6 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             precision: context.precision
         )
 
-        // 7. Check for overflow
         if finalExp > context.maxExponent {
             return Decimal.Outcome(
                 value: .infinity(sign: resultSign),
@@ -165,16 +148,14 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             )
         }
 
-        // 8. Check for underflow
         if finalExp < context.minExponent {
-            // For now, return zero on underflow
+
             return Decimal.Outcome(
                 value: .zero(sign: resultSign),
                 status: status.union(Decimal.Status.underflow)
             )
         }
 
-        // 9. Encode result
         let result = Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff)
         return Decimal.Outcome(value: result, status: status)
     }
@@ -197,7 +178,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
 
         let resultSign: Decimal.Sign = (a.sign == b.sign) ? .positive : .negative
 
-        // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
             let payload =
                 a.test.signaling
@@ -213,7 +193,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 2. Handle infinity cases
         if a.test.infinite {
             if b.test.zero {
                 return Decimal.Outcome(value: .nan(), status: .invalid)
@@ -227,24 +206,18 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             return Decimal.Outcome(value: .infinity(sign: resultSign), status: .none)
         }
 
-        // 3. Handle zero cases
         if a.test.zero || b.test.zero {
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
 
-        // 4. Extract components
         let coeffA = a.extractCoefficient()
         let coeffB = b.extractCoefficient()
         let expA = a.extractExponent()
         let expB = b.extractExponent()
 
-        // 5. Multiply coefficients and add exponents
-        // Note: For full precision we'd need 256-bit arithmetic
-        // For now, use simplified approach that works for most cases
         let resultCoeff = coeffA * coeffB
         let resultExp = expA + expB
 
-        // 6. Round to precision
         let (finalCoeff, finalExp, status) = Decimals.Rounding.round128(
             coefficient: resultCoeff,
             exponent: resultExp,
@@ -253,7 +226,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             precision: context.precision
         )
 
-        // 7. Check for overflow
         if finalExp > context.maxExponent {
             return Decimal.Outcome(
                 value: .infinity(sign: resultSign),
@@ -261,7 +233,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             )
         }
 
-        // 8. Check for underflow
         if finalExp < context.minExponent {
             return Decimal.Outcome(
                 value: .zero(sign: resultSign),
@@ -269,7 +240,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             )
         }
 
-        // 9. Encode result
         let result = Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff)
         return Decimal.Outcome(value: result, status: status)
     }

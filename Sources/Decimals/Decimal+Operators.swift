@@ -1,5 +1,3 @@
-// MARK: - Format64 Division & Comparison
-
 extension Decimal.Format64 {
     public static func / (lhs: Self, rhs: Self) -> Self {
         lhs.operation.divide(rhs).value
@@ -16,8 +14,6 @@ extension Decimal.Format64: @retroactive Comparable {
     }
 }
 
-// MARK: - Format32 Division & Comparison
-
 extension Decimal.Format32 {
     public static func / (lhs: Self, rhs: Self) -> Self {
         lhs.operation.divide(rhs).value
@@ -33,8 +29,6 @@ extension Decimal.Format32: @retroactive Comparable {
         lhs.operation.precedes(rhs)
     }
 }
-
-// MARK: - Format128 Division & Comparison
 
 extension Decimal.Format128 {
     public static func / (lhs: Self, rhs: Self) -> Self {

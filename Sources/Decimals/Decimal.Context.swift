@@ -1,24 +1,18 @@
 extension Decimal {
     public struct Context: Sendable, Hashable {
-        /// Number of significant digits
+
         public var precision: Precision
 
-        /// Rounding mode
         public var rounding: Rounding
 
-        /// Which flags trigger traps
         public var traps: Status
 
-        /// Exponent clamping behavior
         public var clamp: Clamp
 
-        /// When to detect tininess for underflow
         public var tininess: Tininess
 
-        /// Maximum exponent
         public var maxExponent: Exponent
 
-        /// Minimum exponent
         public var minExponent: Exponent
 
         public init(

@@ -6,7 +6,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
         let a = base
         let b = other
 
-        // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
             let payload =
                 a.test.signaling
@@ -22,7 +21,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 2. Handle infinity cases
         if a.test.infinite {
             if b.test.infinite {
                 if a.sign != b.sign {
@@ -35,7 +33,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 3. Handle zero cases
         if a.test.zero && b.test.zero {
             let resultSign: Decimal.Sign =
                 (a.sign == .negative && b.sign == .negative)
@@ -49,7 +46,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             return Decimal.Outcome(value: a, status: .none)
         }
 
-        // 4. Extract components
         let signA = a.sign
         let signB = b.sign
         var coeffA = UInt64(a.extractCoefficient())
@@ -57,14 +53,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
         var expA = a.extractExponent()
         var expB = b.extractExponent()
 
-        // 5. Align exponents by scaling the operand with the larger exponent up by
-        // 10^diff to match the smaller exponent's scale. `diff` can be large (the
-        // format's exponent range spans hundreds of decades), so scaling must stop
-        // the instant it would overflow the working integer type rather than
-        // trusting a fixed decade-count cutoff — the old `diff.rawValue > 20` bound
-        // let scaling run past UInt64's ~19-20 digit capacity and trap on legal
-        // finite inputs (F-002). Once alignment isn't feasible in the working type,
-        // the other operand is too small to affect the correctly-rounded result.
         if expA < expB {
             let diff = expB - expA
             var scaled = coeffB
@@ -97,7 +85,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             expA = expB
         }
 
-        // 6. Perform addition/subtraction
         let resultSign: Decimal.Sign
         let resultCoeff: UInt64
 
@@ -119,7 +106,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             return Decimal.Outcome(value: .zero(sign: zeroSign), status: .none)
         }
 
-        // 7. Round to precision
         let (finalCoeff, finalExp, status) = Decimals.Rounding.round(
             coefficient: resultCoeff,
             exponent: expA,
@@ -128,7 +114,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             precision: context.precision
         )
 
-        // 8. Check for overflow
         if finalExp > context.maxExponent {
             return Decimal.Outcome(
                 value: .infinity(sign: resultSign),
@@ -136,7 +121,6 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             )
         }
 
-        // 9. Encode result
         let result = Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff)
         return Decimal.Outcome(value: result, status: status)
     }
@@ -157,9 +141,8 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         let a = base
         let b = other
 
-        // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
-            // Signaling NaN raises invalid and returns quiet NaN
+
             let payload =
                 a.test.signaling
                 ? Decimal.Payload(a.extractCoefficient()) : Decimal.Payload(b.extractCoefficient())
@@ -173,10 +156,9 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 2. Handle infinity cases
         if a.test.infinite {
             if b.test.infinite {
-                // ∞ + ∞ = ∞, but ∞ + (-∞) = NaN
+
                 if a.sign != b.sign {
                     return Decimal.Outcome(value: .nan(), status: .invalid)
                 }
@@ -187,9 +169,8 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 3. Handle zero cases
         if a.test.zero && b.test.zero {
-            // 0 + 0: sign depends on rounding mode
+
             let resultSign: Decimal.Sign =
                 (a.sign == .negative && b.sign == .negative)
                 ? .negative : (context.rounding == .floor ? .negative : .positive)
@@ -202,7 +183,6 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             return Decimal.Outcome(value: a, status: .none)
         }
 
-        // 4. Extract components
         let signA = a.sign
         let signB = b.sign
         var coeffA = UInt128(a.extractCoefficient())
@@ -210,14 +190,6 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         var expA = a.extractExponent()
         var expB = b.extractExponent()
 
-        // 5. Align exponents by scaling the operand with the larger exponent up by
-        // 10^diff to match the smaller exponent's scale. `diff` can be large (the
-        // format's exponent range spans hundreds of decades), so scaling must stop
-        // the instant it would overflow the working integer type rather than
-        // trusting a fixed decade-count cutoff — the old `diff.rawValue > 38` bound
-        // let scaling run past UInt128's ~38-39 digit capacity and trap on legal
-        // finite inputs (F-002). Once alignment isn't feasible in the working type,
-        // the other operand is too small to affect the correctly-rounded result.
         if expA < expB {
             let diff = expB - expA
             var scaled = coeffB
@@ -229,7 +201,7 @@ extension Decimal.Operation where Value == Decimal.Format64 {
                 shifted += 1
             }
             if shifted < diff.rawValue {
-                // B is so much larger that A is negligible
+
                 return Decimal.Outcome(value: b, status: .inexact)
             }
             coeffB = scaled
@@ -245,23 +217,22 @@ extension Decimal.Operation where Value == Decimal.Format64 {
                 shifted += 1
             }
             if shifted < diff.rawValue {
-                // A is so much larger that B is negligible
+
                 return Decimal.Outcome(value: a, status: .inexact)
             }
             coeffA = scaled
             expA = expB
         }
 
-        // 6. Perform addition/subtraction
         let resultSign: Decimal.Sign
         let resultCoeff: UInt128
 
         if signA == signB {
-            // Same sign: add magnitudes
+
             resultSign = signA
             resultCoeff = coeffA + coeffB
         } else {
-            // Different signs: subtract magnitudes
+
             if coeffA >= coeffB {
                 resultSign = signA
                 resultCoeff = coeffA - coeffB
@@ -271,13 +242,11 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             }
         }
 
-        // Handle zero result
         if resultCoeff == 0 {
             let zeroSign: Decimal.Sign = context.rounding == .floor ? .negative : .positive
             return Decimal.Outcome(value: .zero(sign: zeroSign), status: .none)
         }
 
-        // 7. Round to precision
         let (finalCoeff, finalExp, status) = Decimals.Rounding.round(
             coefficient: resultCoeff,
             exponent: expA,
@@ -286,7 +255,6 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             precision: context.precision
         )
 
-        // 8. Check for overflow
         if finalExp > context.maxExponent {
             return Decimal.Outcome(
                 value: .infinity(sign: resultSign),
@@ -294,7 +262,6 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             )
         }
 
-        // 9. Encode result
         let result = Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff)
         return Decimal.Outcome(value: result, status: status)
     }
@@ -315,7 +282,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
         let a = base
         let b = other
 
-        // 1. Handle NaN propagation
         if a.test.signaling || b.test.signaling {
             let payload =
                 a.test.signaling
@@ -331,7 +297,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 2. Handle infinity cases
         if a.test.infinite {
             if b.test.infinite {
                 if a.sign != b.sign {
@@ -344,7 +309,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             return Decimal.Outcome(value: b, status: .none)
         }
 
-        // 3. Handle zero cases
         if a.test.zero && b.test.zero {
             let resultSign: Decimal.Sign =
                 (a.sign == .negative && b.sign == .negative)
@@ -358,70 +322,12 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             return Decimal.Outcome(value: a, status: .none)
         }
 
-        // 4. Extract components
         let signA = a.sign
         let signB = b.sign
         let coeffA = a.extractCoefficient()
         let coeffB = b.extractCoefficient()
         let expA = a.extractExponent()
         let expB = b.extractExponent()
-
-        // 5. Align exponents by scaling the operand with the larger exponent up by
-        // 10^diff to match the smaller exponent's scale.
-        //
-        // Format128's headroom above its own precision (UInt128's ~38-39 digit
-        // capacity minus this format's 34-digit precision — only ~4-5 digits) is
-        // NOT enough to guarantee the far operand is negligible the instant
-        // scaling would overflow UInt128: that let the old fixed-cutoff shortcut
-        // fire while the far operand was still within reach of the correctly-
-        // rounded result, silently dropping a still-significant operand (F-002
-        // revision 1; concrete case: 9999999999999999999999999999999999e0 +
-        // 9999999999999999999999999999999999e5, exponent gap 5, used to return
-        // the bare larger operand instead of the true ~1.00001e40 sum).
-        // Format32/64 add are UNCHANGED and remain sound: their working types
-        // (UInt64/UInt128) have headroom far exceeding their own precision
-        // (7/16 digits), so overflow there can only happen well past the point
-        // established by the same guard-digit argument below.
-        //
-        // Revision 2 (digit-position-aware decision): a FIXED `precision + 2`
-        // guard-digit window is unsound. The prior comment's soundness
-        // argument assumed the near (retained) operand already carries close
-        // to `precision` digits of its own — but a validly encoded value can
-        // carry as few as 1 digit. The near operand's own most significant
-        // digit, not the exponent gap in the abstract, is what anchors the
-        // `precision`-digit retained window; when the near operand has fewer
-        // digits, that window's floor sits closer to the far operand than a
-        // fixed gap assumes, so a fixed threshold can misclassify a
-        // still-significant far operand as safely droppable. The corrected,
-        // digit-position-aware test: the drop is safe only when the far
-        // operand's most significant digit lies strictly more than
-        // `precision` digits below the near operand's most significant digit,
-        // i.e. `diff > digits(far) - digits(near) + precision`. Below that
-        // (inclusive), compute the exact sum in 256-bit (`Decimals.Wide`)
-        // space and round once. The worst case (`digits(far) == precision`,
-        // `digits(near) == 1`) needs `diff >= 2 * precision` before a drop is
-        // safe. `digits(...)` is computed per branch below (the near/far
-        // roles swap with which operand carries the larger exponent) via
-        // `Decimals.Rounding.digitCount`, the same digit-counting the
-        // rounding kernel already performs internally.
-        //
-        // Overflow safety: the exact branch scales the near operand (larger
-        // exponent) up by `10^diff`, so its scaled digit span is
-        // `digits(near) + diff`. Substituting the boundary
-        // `diff <= precision + digits(far) - digits(near)` bounds that span
-        // by `precision + digits(far)`. Both `add()` operands are validly
-        // encoded Format128 values, so `digits(far) <= precision` (34) —
-        // worst-case span `34 + 34 = 68` digits, comfortably inside
-        // `Decimals.Wide`'s ~77-digit (256-bit) capacity. Whenever the far
-        // operand sits far enough below to threaten that capacity, the
-        // digit-position condition has already classified it as safe to
-        // drop, so `multipliedBy10()`'s precondition is never fed an
-        // overflowing scale by a legal finite input.
-        //
-        // The drop path's `sticky: true` is unconditionally correct (not a
-        // hardcoded assumption): it is only reached once the far operand is
-        // provably nonzero, since both-zero and either-zero cases are
-        // already handled in step 3 above.
 
         if expA < expB {
             let diff = expB - expA
@@ -563,7 +469,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             )
         }
 
-        // 6. Perform addition/subtraction
         let resultSign: Decimal.Sign
         let resultCoeff: UInt128
 
@@ -585,7 +490,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             return Decimal.Outcome(value: .zero(sign: zeroSign), status: .none)
         }
 
-        // 7. Round to precision
         let (finalCoeff, finalExp, status) = Decimals.Rounding.round128(
             coefficient: resultCoeff,
             exponent: expA,
@@ -594,7 +498,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             precision: context.precision
         )
 
-        // 8. Check for overflow
         if finalExp > context.maxExponent {
             return Decimal.Outcome(
                 value: .infinity(sign: resultSign),
@@ -602,7 +505,6 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             )
         }
 
-        // 9. Encode result
         let result = Value.encode(sign: resultSign, exponent: finalExp, coefficient: finalCoeff)
         return Decimal.Outcome(value: result, status: status)
     }
