@@ -22,7 +22,7 @@ extension Decimal.Text where Value == Decimal.Format64 {
 
         // Handle sign
         if base.sign == .negative {
-            buffer[offset] = UInt8(ascii: "-")
+            unsafe buffer[offset] = UInt8(ascii: "-")
             offset += 1
         }
 
@@ -30,7 +30,7 @@ extension Decimal.Text where Value == Decimal.Format64 {
         if base.test.nan {
             let nan: [UInt8] = [UInt8(ascii: "N"), UInt8(ascii: "a"), UInt8(ascii: "N")]
             for byte in nan {
-                buffer[offset] = byte
+                unsafe buffer[offset] = byte
                 offset += 1
             }
             return offset
@@ -42,7 +42,7 @@ extension Decimal.Text where Value == Decimal.Format64 {
                 UInt8(ascii: "n"), UInt8(ascii: "i"), UInt8(ascii: "t"), UInt8(ascii: "y"),
             ]
             for byte in inf {
-                buffer[offset] = byte
+                unsafe buffer[offset] = byte
                 offset += 1
             }
             return offset
@@ -50,7 +50,7 @@ extension Decimal.Text where Value == Decimal.Format64 {
 
         // Handle zero
         if base.test.zero {
-            buffer[offset] = UInt8(ascii: "0")
+            unsafe buffer[offset] = UInt8(ascii: "0")
             return offset + 1
         }
 
@@ -72,11 +72,11 @@ extension Decimal.Text where Value == Decimal.Format64 {
             if exponent.rawValue >= 0 {
                 // Integer or integer with trailing zeros
                 for digit in digits {
-                    buffer[offset] = digit
+                    unsafe buffer[offset] = digit
                     offset += 1
                 }
                 for _ in 0..<exponent.rawValue {
-                    buffer[offset] = UInt8(ascii: "0")
+                    unsafe buffer[offset] = UInt8(ascii: "0")
                     offset += 1
                 }
             } else if exponent.rawValue >= -numDigits + 1 {
@@ -84,43 +84,43 @@ extension Decimal.Text where Value == Decimal.Format64 {
                 let decimalPos = numDigits + exponent.rawValue
                 for (i, digit) in digits.enumerated() {
                     if i == decimalPos {
-                        buffer[offset] = UInt8(ascii: ".")
+                        unsafe buffer[offset] = UInt8(ascii: ".")
                         offset += 1
                     }
-                    buffer[offset] = digit
+                    unsafe buffer[offset] = digit
                     offset += 1
                 }
             } else {
                 // Need leading zeros after decimal
-                buffer[offset] = UInt8(ascii: "0")
+                unsafe buffer[offset] = UInt8(ascii: "0")
                 offset += 1
-                buffer[offset] = UInt8(ascii: ".")
+                unsafe buffer[offset] = UInt8(ascii: ".")
                 offset += 1
                 for _ in 0..<(-exponent.rawValue - numDigits) {
-                    buffer[offset] = UInt8(ascii: "0")
+                    unsafe buffer[offset] = UInt8(ascii: "0")
                     offset += 1
                 }
                 for digit in digits {
-                    buffer[offset] = digit
+                    unsafe buffer[offset] = digit
                     offset += 1
                 }
             }
 
         case .scientific:
             // Scientific: d.dddE+ee
-            buffer[offset] = digits[0]
+            unsafe buffer[offset] = digits[0]
             offset += 1
             if numDigits > 1 {
-                buffer[offset] = UInt8(ascii: ".")
+                unsafe buffer[offset] = UInt8(ascii: ".")
                 offset += 1
                 (1..<numDigits).forEach { i in
-                    buffer[offset] = digits[i]
+                    unsafe buffer[offset] = digits[i]
                     offset += 1
                 }
             }
-            buffer[offset] = UInt8(ascii: "E")
+            unsafe buffer[offset] = UInt8(ascii: "E")
             offset += 1
-            offset += writeExponent(adjustedExponent, to: buffer, at: offset)
+            unsafe offset += writeExponent(adjustedExponent, to: buffer, at: offset)
 
         case .engineering:
             // Engineering: exponent multiple of 3
@@ -130,24 +130,24 @@ extension Decimal.Text where Value == Decimal.Format64 {
 
             (0..<intDigits).forEach { i in
                 if i < numDigits {
-                    buffer[offset] = digits[i]
+                    unsafe buffer[offset] = digits[i]
                 } else {
-                    buffer[offset] = UInt8(ascii: "0")
+                    unsafe buffer[offset] = UInt8(ascii: "0")
                 }
                 offset += 1
             }
             if intDigits < numDigits {
-                buffer[offset] = UInt8(ascii: ".")
+                unsafe buffer[offset] = UInt8(ascii: ".")
                 offset += 1
                 (intDigits..<numDigits).forEach { i in
-                    buffer[offset] = digits[i]
+                    unsafe buffer[offset] = digits[i]
                     offset += 1
                 }
             }
             if engExp != 0 {
-                buffer[offset] = UInt8(ascii: "E")
+                unsafe buffer[offset] = UInt8(ascii: "E")
                 offset += 1
-                offset += writeExponent(engExp, to: buffer, at: offset)
+                unsafe offset += writeExponent(engExp, to: buffer, at: offset)
             }
         }
 
@@ -162,9 +162,9 @@ extension Decimal.Text where Value == Decimal.Format64 {
     ) -> Int {
         var off = offset
         if exp >= 0 {
-            buffer[off] = UInt8(ascii: "+")
+            unsafe buffer[off] = UInt8(ascii: "+")
         } else {
-            buffer[off] = UInt8(ascii: "-")
+            unsafe buffer[off] = UInt8(ascii: "-")
         }
         off += 1
 
@@ -180,7 +180,7 @@ extension Decimal.Text where Value == Decimal.Format64 {
         }
         expDigits.reverse()
         for digit in expDigits {
-            buffer[off] = digit
+            unsafe buffer[off] = digit
             off += 1
         }
         return off - offset
@@ -196,7 +196,7 @@ extension Decimal.Text where Value == Decimal.Format64 {
         // `.plain` style (F-001).
         var temp = [UInt8](repeating: 0, count: requiredCapacity(style: style))
         let count = temp.withUnsafeMutableBufferPointer { ptr in
-            render(into: ptr, style: style)
+            unsafe render(into: ptr, style: style)
         }
         buffer.append(contentsOf: temp[0..<count])
     }
@@ -293,7 +293,7 @@ extension Decimal.Text where Value == Decimal.Format32 {
 
         // Handle sign
         if base.sign == .negative {
-            buffer[offset] = UInt8(ascii: "-")
+            unsafe buffer[offset] = UInt8(ascii: "-")
             offset += 1
         }
 
@@ -301,7 +301,7 @@ extension Decimal.Text where Value == Decimal.Format32 {
         if base.test.nan {
             let nan: [UInt8] = [UInt8(ascii: "N"), UInt8(ascii: "a"), UInt8(ascii: "N")]
             for byte in nan {
-                buffer[offset] = byte
+                unsafe buffer[offset] = byte
                 offset += 1
             }
             return offset
@@ -313,7 +313,7 @@ extension Decimal.Text where Value == Decimal.Format32 {
                 UInt8(ascii: "n"), UInt8(ascii: "i"), UInt8(ascii: "t"), UInt8(ascii: "y"),
             ]
             for byte in inf {
-                buffer[offset] = byte
+                unsafe buffer[offset] = byte
                 offset += 1
             }
             return offset
@@ -321,7 +321,7 @@ extension Decimal.Text where Value == Decimal.Format32 {
 
         // Handle zero
         if base.test.zero {
-            buffer[offset] = UInt8(ascii: "0")
+            unsafe buffer[offset] = UInt8(ascii: "0")
             return offset + 1
         }
 
@@ -341,52 +341,52 @@ extension Decimal.Text where Value == Decimal.Format32 {
         case .plain:
             if exponent.rawValue >= 0 {
                 for digit in digits {
-                    buffer[offset] = digit
+                    unsafe buffer[offset] = digit
                     offset += 1
                 }
                 for _ in 0..<exponent.rawValue {
-                    buffer[offset] = UInt8(ascii: "0")
+                    unsafe buffer[offset] = UInt8(ascii: "0")
                     offset += 1
                 }
             } else if exponent.rawValue >= -numDigits + 1 {
                 let decimalPos = numDigits + exponent.rawValue
                 for (i, digit) in digits.enumerated() {
                     if i == decimalPos {
-                        buffer[offset] = UInt8(ascii: ".")
+                        unsafe buffer[offset] = UInt8(ascii: ".")
                         offset += 1
                     }
-                    buffer[offset] = digit
+                    unsafe buffer[offset] = digit
                     offset += 1
                 }
             } else {
-                buffer[offset] = UInt8(ascii: "0")
+                unsafe buffer[offset] = UInt8(ascii: "0")
                 offset += 1
-                buffer[offset] = UInt8(ascii: ".")
+                unsafe buffer[offset] = UInt8(ascii: ".")
                 offset += 1
                 for _ in 0..<(-exponent.rawValue - numDigits) {
-                    buffer[offset] = UInt8(ascii: "0")
+                    unsafe buffer[offset] = UInt8(ascii: "0")
                     offset += 1
                 }
                 for digit in digits {
-                    buffer[offset] = digit
+                    unsafe buffer[offset] = digit
                     offset += 1
                 }
             }
 
         case .scientific:
-            buffer[offset] = digits[0]
+            unsafe buffer[offset] = digits[0]
             offset += 1
             if numDigits > 1 {
-                buffer[offset] = UInt8(ascii: ".")
+                unsafe buffer[offset] = UInt8(ascii: ".")
                 offset += 1
                 (1..<numDigits).forEach { i in
-                    buffer[offset] = digits[i]
+                    unsafe buffer[offset] = digits[i]
                     offset += 1
                 }
             }
-            buffer[offset] = UInt8(ascii: "E")
+            unsafe buffer[offset] = UInt8(ascii: "E")
             offset += 1
-            offset += writeExponent(adjustedExponent, to: buffer, at: offset)
+            unsafe offset += writeExponent(adjustedExponent, to: buffer, at: offset)
 
         case .engineering:
             let engExp = (adjustedExponent / 3) * 3
@@ -395,24 +395,24 @@ extension Decimal.Text where Value == Decimal.Format32 {
 
             (0..<intDigits).forEach { i in
                 if i < numDigits {
-                    buffer[offset] = digits[i]
+                    unsafe buffer[offset] = digits[i]
                 } else {
-                    buffer[offset] = UInt8(ascii: "0")
+                    unsafe buffer[offset] = UInt8(ascii: "0")
                 }
                 offset += 1
             }
             if intDigits < numDigits {
-                buffer[offset] = UInt8(ascii: ".")
+                unsafe buffer[offset] = UInt8(ascii: ".")
                 offset += 1
                 (intDigits..<numDigits).forEach { i in
-                    buffer[offset] = digits[i]
+                    unsafe buffer[offset] = digits[i]
                     offset += 1
                 }
             }
             if engExp != 0 {
-                buffer[offset] = UInt8(ascii: "E")
+                unsafe buffer[offset] = UInt8(ascii: "E")
                 offset += 1
-                offset += writeExponent(engExp, to: buffer, at: offset)
+                unsafe offset += writeExponent(engExp, to: buffer, at: offset)
             }
         }
 
@@ -427,9 +427,9 @@ extension Decimal.Text where Value == Decimal.Format32 {
     ) -> Int {
         var off = offset
         if exp >= 0 {
-            buffer[off] = UInt8(ascii: "+")
+            unsafe buffer[off] = UInt8(ascii: "+")
         } else {
-            buffer[off] = UInt8(ascii: "-")
+            unsafe buffer[off] = UInt8(ascii: "-")
         }
         off += 1
 
@@ -445,7 +445,7 @@ extension Decimal.Text where Value == Decimal.Format32 {
         }
         expDigits.reverse()
         for digit in expDigits {
-            buffer[off] = digit
+            unsafe buffer[off] = digit
             off += 1
         }
         return off - offset
@@ -461,7 +461,7 @@ extension Decimal.Text where Value == Decimal.Format32 {
         // `.plain` style (F-001).
         var temp = [UInt8](repeating: 0, count: requiredCapacity(style: style))
         let count = temp.withUnsafeMutableBufferPointer { ptr in
-            render(into: ptr, style: style)
+            unsafe render(into: ptr, style: style)
         }
         buffer.append(contentsOf: temp[0..<count])
     }
@@ -552,7 +552,7 @@ extension Decimal.Text where Value == Decimal.Format128 {
 
         // Handle sign
         if base.sign == .negative {
-            buffer[offset] = UInt8(ascii: "-")
+            unsafe buffer[offset] = UInt8(ascii: "-")
             offset += 1
         }
 
@@ -560,7 +560,7 @@ extension Decimal.Text where Value == Decimal.Format128 {
         if base.test.nan {
             let nan: [UInt8] = [UInt8(ascii: "N"), UInt8(ascii: "a"), UInt8(ascii: "N")]
             for byte in nan {
-                buffer[offset] = byte
+                unsafe buffer[offset] = byte
                 offset += 1
             }
             return offset
@@ -572,7 +572,7 @@ extension Decimal.Text where Value == Decimal.Format128 {
                 UInt8(ascii: "n"), UInt8(ascii: "i"), UInt8(ascii: "t"), UInt8(ascii: "y"),
             ]
             for byte in inf {
-                buffer[offset] = byte
+                unsafe buffer[offset] = byte
                 offset += 1
             }
             return offset
@@ -580,7 +580,7 @@ extension Decimal.Text where Value == Decimal.Format128 {
 
         // Handle zero
         if base.test.zero {
-            buffer[offset] = UInt8(ascii: "0")
+            unsafe buffer[offset] = UInt8(ascii: "0")
             return offset + 1
         }
 
@@ -600,52 +600,52 @@ extension Decimal.Text where Value == Decimal.Format128 {
         case .plain:
             if exponent.rawValue >= 0 {
                 for digit in digits {
-                    buffer[offset] = digit
+                    unsafe buffer[offset] = digit
                     offset += 1
                 }
                 for _ in 0..<exponent.rawValue {
-                    buffer[offset] = UInt8(ascii: "0")
+                    unsafe buffer[offset] = UInt8(ascii: "0")
                     offset += 1
                 }
             } else if exponent.rawValue >= -numDigits + 1 {
                 let decimalPos = numDigits + exponent.rawValue
                 for (i, digit) in digits.enumerated() {
                     if i == decimalPos {
-                        buffer[offset] = UInt8(ascii: ".")
+                        unsafe buffer[offset] = UInt8(ascii: ".")
                         offset += 1
                     }
-                    buffer[offset] = digit
+                    unsafe buffer[offset] = digit
                     offset += 1
                 }
             } else {
-                buffer[offset] = UInt8(ascii: "0")
+                unsafe buffer[offset] = UInt8(ascii: "0")
                 offset += 1
-                buffer[offset] = UInt8(ascii: ".")
+                unsafe buffer[offset] = UInt8(ascii: ".")
                 offset += 1
                 for _ in 0..<(-exponent.rawValue - numDigits) {
-                    buffer[offset] = UInt8(ascii: "0")
+                    unsafe buffer[offset] = UInt8(ascii: "0")
                     offset += 1
                 }
                 for digit in digits {
-                    buffer[offset] = digit
+                    unsafe buffer[offset] = digit
                     offset += 1
                 }
             }
 
         case .scientific:
-            buffer[offset] = digits[0]
+            unsafe buffer[offset] = digits[0]
             offset += 1
             if numDigits > 1 {
-                buffer[offset] = UInt8(ascii: ".")
+                unsafe buffer[offset] = UInt8(ascii: ".")
                 offset += 1
                 (1..<numDigits).forEach { i in
-                    buffer[offset] = digits[i]
+                    unsafe buffer[offset] = digits[i]
                     offset += 1
                 }
             }
-            buffer[offset] = UInt8(ascii: "E")
+            unsafe buffer[offset] = UInt8(ascii: "E")
             offset += 1
-            offset += writeExponent(adjustedExponent, to: buffer, at: offset)
+            unsafe offset += writeExponent(adjustedExponent, to: buffer, at: offset)
 
         case .engineering:
             let engExp = (adjustedExponent / 3) * 3
@@ -654,24 +654,24 @@ extension Decimal.Text where Value == Decimal.Format128 {
 
             (0..<intDigits).forEach { i in
                 if i < numDigits {
-                    buffer[offset] = digits[i]
+                    unsafe buffer[offset] = digits[i]
                 } else {
-                    buffer[offset] = UInt8(ascii: "0")
+                    unsafe buffer[offset] = UInt8(ascii: "0")
                 }
                 offset += 1
             }
             if intDigits < numDigits {
-                buffer[offset] = UInt8(ascii: ".")
+                unsafe buffer[offset] = UInt8(ascii: ".")
                 offset += 1
                 (intDigits..<numDigits).forEach { i in
-                    buffer[offset] = digits[i]
+                    unsafe buffer[offset] = digits[i]
                     offset += 1
                 }
             }
             if engExp != 0 {
-                buffer[offset] = UInt8(ascii: "E")
+                unsafe buffer[offset] = UInt8(ascii: "E")
                 offset += 1
-                offset += writeExponent(engExp, to: buffer, at: offset)
+                unsafe offset += writeExponent(engExp, to: buffer, at: offset)
             }
         }
 
@@ -686,9 +686,9 @@ extension Decimal.Text where Value == Decimal.Format128 {
     ) -> Int {
         var off = offset
         if exp >= 0 {
-            buffer[off] = UInt8(ascii: "+")
+            unsafe buffer[off] = UInt8(ascii: "+")
         } else {
-            buffer[off] = UInt8(ascii: "-")
+            unsafe buffer[off] = UInt8(ascii: "-")
         }
         off += 1
 
@@ -704,7 +704,7 @@ extension Decimal.Text where Value == Decimal.Format128 {
         }
         expDigits.reverse()
         for digit in expDigits {
-            buffer[off] = digit
+            unsafe buffer[off] = digit
             off += 1
         }
         return off - offset
@@ -720,7 +720,7 @@ extension Decimal.Text where Value == Decimal.Format128 {
         // `.plain` style (F-001) — Format128's exponent range reaches +6144/-6143.
         var temp = [UInt8](repeating: 0, count: requiredCapacity(style: style))
         let count = temp.withUnsafeMutableBufferPointer { ptr in
-            render(into: ptr, style: style)
+            unsafe render(into: ptr, style: style)
         }
         buffer.append(contentsOf: temp[0..<count])
     }
