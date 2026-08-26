@@ -50,7 +50,7 @@ Add swift-decimals to your `Package.swift` (no tags are published yet; pin to `m
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/swift-foundations/swift-decimals.git", branch: "main")
+    .package(url: "https://github.com/swift-compositions/swift-decimals.git", branch: "main")
 ]
 ```
 
@@ -87,11 +87,11 @@ All three formats expose the same operation and text surface; the current test s
 
 ## Architecture
 
-Single module. `import Decimals` re-exports the underlying `IEEE_754` and `Decimal_Primitives` modules, so the format types and their bit-level accessors are available through the one import.
+Single module. `import Decimals` re-exports the underlying `IEEE_754` and `Decimal` modules, so the format types and their bit-level accessors are available through the one import.
 
 | Type | Purpose |
 |------|---------|
-| `Decimal.Format32` / `.Format64` / `.Format128` | BID-encoded decimal values (from `Decimal_Primitives`, re-exported) |
+| `Decimal.Format32` / `.Format64` / `.Format128` | BID-encoded decimal values (from `Decimal`, re-exported) |
 | `Decimal.Operation` | Per-value accessor: `add`, `multiply`, `divide`, `fuse`, `compare`, `precedes` |
 | `Decimal.Outcome` | Operation result: `value` + raised `status` flags |
 | `Decimal.Context` | Precision, rounding, traps, clamping, tininess, exponent bounds |
@@ -148,8 +148,8 @@ do {
 ### Dependencies
 
 - [swift-ieee-754](https://github.com/swift-ieee/swift-ieee-754) — IEEE 754 shared vocabulary this package builds on.
-- swift-decimal-primitives (pre-release, `main` branch pin) — BID storage formats and bit-level encode/decode.
-- swift-ascii-serializer-primitives (pre-release, `main` branch pin) — ASCII digit serialization used by text rendering.
+- swift-decimal (pre-release, `main` branch pin) — BID storage formats and bit-level encode/decode.
+- swift-ascii-serializer (pre-release, `main` branch pin) — ASCII digit serialization used by text rendering.
 
 ---
 

@@ -276,7 +276,7 @@ extension Decimal.Format32.Test {
 
         @Test
         func
-            `fuse does not corrupt a Form-2-encoded coefficient input via the swift-decimal-primitives BID Form-2 decode bug`()
+            `fuse does not corrupt a Form-2-encoded coefficient input via the swift-decimal BID Form-2 decode bug`()
         {
 
             let x = Decimal.Format32.encode(

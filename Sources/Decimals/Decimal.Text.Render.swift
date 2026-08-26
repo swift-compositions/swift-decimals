@@ -1,4 +1,4 @@
-internal import ASCII_Decimal_Serializer_Primitives
+internal import ASCII_Decimal_Serializer
 
 extension Decimal.Text where Value == Decimal.Format64 {
 
