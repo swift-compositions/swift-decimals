@@ -1,4 +1,4 @@
-internal import ASCII_Decimal_Serializer
+internal import ASCII
 
 extension Decimal.Text where Value == Decimal.Format64 {
 

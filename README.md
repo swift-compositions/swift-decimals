@@ -149,7 +149,7 @@ do {
 
 - [swift-ieee-754](https://github.com/swift-ieee/swift-ieee-754) — IEEE 754 shared vocabulary this package builds on.
 - swift-decimal (pre-release, `main` branch pin) — BID storage formats and bit-level encode/decode.
-- swift-ascii-serializer (pre-release, `main` branch pin) — ASCII digit serialization used by text rendering.
+- swift-ascii with its Serializer trait (pre-release, `main` branch pin) — ASCII digit serialization used by text rendering.
 
 ---
 
