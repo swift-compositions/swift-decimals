@@ -87,7 +87,11 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
                 hasDigits = true
                 let digit = UInt64(byte - UInt8(ascii: "0"))
 
-                if digitCount < 19 {
+                if coefficient == 0 && digit == 0 {
+                    if decimalPos != nil {
+                        exponent -= 1
+                    }
+                } else if digitCount < 19 {
                     coefficient = coefficient * 10 + digit
                     digitCount += 1
                 } else {
@@ -316,7 +320,11 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
                 hasDigits = true
                 let digit = UInt32(byte - UInt8(ascii: "0"))
 
-                if digitCount < 9 {
+                if coefficient == 0 && digit == 0 {
+                    if decimalPos != nil {
+                        exponent -= 1
+                    }
+                } else if digitCount < 9 {
                     coefficient = coefficient * 10 + digit
                     digitCount += 1
                 } else {
@@ -544,7 +552,11 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
                 hasDigits = true
                 let digit = UInt128(byte - UInt8(ascii: "0"))
 
-                if digitCount < 38 {
+                if coefficient == 0 && digit == 0 {
+                    if decimalPos != nil {
+                        exponent -= 1
+                    }
+                } else if digitCount < 38 {
                     coefficient = coefficient * 10 + digit
                     digitCount += 1
                 } else {
