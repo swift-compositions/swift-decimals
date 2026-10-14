@@ -1,6 +1,6 @@
 extension Decimal {
 
-    public struct Trap<Value>: Swift.Error, Hashable where Value: Hashable {
+    public struct Trap<Value>: Swift::Error, Hashable where Value: Hashable {
 
         public let flag: Flag
 

@@ -1,5 +1,5 @@
 extension Decimal {
-    public enum _TextError: Swift.Error, Sendable, Hashable {
+    public enum _TextError: Swift::Error, Sendable, Hashable {
 
         case empty
 

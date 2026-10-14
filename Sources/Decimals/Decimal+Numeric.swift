@@ -17,7 +17,7 @@ extension Decimal.Format64: @retroactive AdditiveArithmetic {
     }
 }
 
-extension Decimal.Format64: Swift.Numeric {
+extension Decimal.Format64: @retroactive Swift::Numeric {
     public typealias Magnitude = Self
 
     public var magnitude: Magnitude {
@@ -79,7 +79,7 @@ extension Decimal.Format32: @retroactive AdditiveArithmetic {
     }
 }
 
-extension Decimal.Format32: Swift.Numeric {
+extension Decimal.Format32: @retroactive Swift::Numeric {
     public typealias Magnitude = Self
 
     public var magnitude: Magnitude {
@@ -141,7 +141,7 @@ extension Decimal.Format128: @retroactive AdditiveArithmetic {
     }
 }
 
-extension Decimal.Format128: Swift.Numeric {
+extension Decimal.Format128: @retroactive Swift::Numeric {
     public typealias Magnitude = Self
 
     public var magnitude: Magnitude {
