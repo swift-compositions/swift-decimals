@@ -45,6 +45,7 @@ extension Decimal.Format64 {
             #expect(value(225, -2).squareRoot() == value(15, -1))
             #expect(Decimal.Format64(2).squareRoot() == value(1_414_213_562_373_095, -15))
             #expect(Decimal.Format64(-4).squareRoot().isNaN)
+            #expect((-Decimal.Format64.infinity).squareRoot().isNaN)
         }
 
         @Test func `the IEEE remainder rounds the quotient to nearest even`() {

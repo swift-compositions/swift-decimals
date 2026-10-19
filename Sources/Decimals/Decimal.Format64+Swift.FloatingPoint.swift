@@ -1,4 +1,3 @@
-import Division
 import Rounding
 
 extension Decimal.Format64: @retroactive FloatingPoint {
@@ -169,7 +168,7 @@ extension Decimal.Format64: @retroactive FloatingPoint {
         guard test.finite, exponent < 0 else {
             return
         }
-        let coefficient = Self.dropping(
+        let coefficient = Decimals.Rounding.dropping(
             -exponent,
             from: canonicalCoefficient,
             sign: sign,
@@ -191,7 +190,7 @@ extension Decimal.Format64: @retroactive FloatingPoint {
             self = .nan
             return
         }
-        guard canonicalCoefficient != 0 else {
+        guard test.infinite || canonicalCoefficient != 0 else {
             return
         }
         guard sign == .plus else {
@@ -213,7 +212,7 @@ extension Decimal.Format64: @retroactive FloatingPoint {
             radicand *= 100
             exponent -= 2
         }
-        let root = Self.integerSquareRoot(radicand)
+        let root = Decimals.Wide(radicand).squareRoot()
         let exact = root * root == radicand
         var rounded = Decimals.Rounding.round(
             coefficient: root,
@@ -278,32 +277,6 @@ extension Decimal.Format64 {
         return (coefficient, exponent)
     }
 
-    static func dropping(
-        _ digits: Int,
-        from coefficient: UInt64,
-        sign: FloatingPointSign,
-        rounding: Rounding::Rounding
-    ) -> UInt64 {
-        guard digits > 0 else {
-            return coefficient
-        }
-        guard digits <= 18 else {
-            let increments = try? rounding.incrementsMagnitude(
-                isNegative: sign == .minus,
-                integralPartIsOdd: false,
-                fractionComparedToHalf: coefficient == 0 ? nil : .less
-            )
-            return increments == true ? 1 : 0
-        }
-        var divisor: Int64 = 1
-        for _ in 0..<digits {
-            divisor *= 10
-        }
-        let dividend = sign == .minus ? -Int64(coefficient) : Int64(coefficient)
-        let quotient = (try? Division.rounded(dividend, by: divisor, rounding: rounding).quotient) ?? dividend / divisor
-        return quotient.magnitude
-    }
-
     func scaled(byPowerOfTen power: Int) -> Self {
         guard test.finite, canonicalCoefficient != 0 else {
             return self
@@ -322,7 +295,7 @@ extension Decimal.Format64 {
             return .encode(sign: sign, exponent: Self.maxExponent, coefficient: padded)
         }
         if target < Int(Self.minExponent) {
-            let dropped = Self.dropping(
+            let dropped = Decimals.Rounding.dropping(
                 Int(Self.minExponent) - target,
                 from: coefficient,
                 sign: sign,
@@ -393,23 +366,5 @@ extension Decimal.Format64 {
             return .encode(sign: sign, exponent: Decimal.Exponent(unit), coefficient: 0)
         }
         return .encode(sign: resultSign, exponent: Decimal.Exponent(unit), coefficient: UInt64(magnitude))
-    }
-
-    static func integerSquareRoot(_ value: UInt128) -> UInt128 {
-        var root = UInt128(Double(value).squareRoot())
-        while true {
-            let next = (root + value / root) / 2
-            guard next < root else {
-                break
-            }
-            root = next
-        }
-        while root * root > value {
-            root -= 1
-        }
-        while (root + 1) * (root + 1) <= value {
-            root += 1
-        }
-        return root
     }
 }

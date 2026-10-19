@@ -73,6 +73,12 @@ extension Decimals.Wide {
         return (Self(high: highQuotient, low: lowQuotient), lowRemainder)
     }
 
+    func divided(by divisor: UInt128) -> (quotient: Self, remainder: UInt128) {
+        let (highQuotient, highRemainder) = high.quotientAndRemainder(dividingBy: divisor)
+        let (lowQuotient, remainder) = divisor.dividingFullWidth((high: highRemainder, low: low))
+        return (Self(high: highQuotient, low: lowQuotient), remainder)
+    }
+
     func reduced(
         toFitBelowOrEqual limit: UInt128
     ) -> (coefficient: UInt128, shift: Int, sticky: Bool) {
@@ -90,5 +96,38 @@ extension Decimals.Wide {
 
     func reducedToFitUInt128() -> (coefficient: UInt128, shift: Int, sticky: Bool) {
         reduced(toFitBelowOrEqual: .max)
+    }
+}
+
+extension Decimals.Wide {
+
+    func squareRoot() -> UInt128 {
+        guard !isZero else {
+            return 0
+        }
+        let estimate = (Double(high) * 0x1p128 + Double(low)).squareRoot() * (1 + 0x1p-30)
+        var root = estimate < 0x1p127 ? UInt128(estimate) + 1 : UInt128.max
+        while true {
+            let quotient = root.dividingFullWidth((high: high, low: low)).quotient
+            let next = root / 2 + quotient / 2 + (root & quotient & 1)
+            guard next < root else {
+                break
+            }
+            root = next
+        }
+        while Self(root.multipliedFullWidth(by: root)) > self {
+            root -= 1
+        }
+        while Self((root + 1).multipliedFullWidth(by: root + 1)) <= self {
+            root += 1
+        }
+        return root
+    }
+}
+
+extension Decimals.Wide {
+
+    init(_ product: (high: UInt128, low: UInt128)) {
+        self.init(high: product.high, low: product.low)
     }
 }

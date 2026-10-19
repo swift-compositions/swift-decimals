@@ -279,7 +279,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
 
-        var coeffA = a.extractCoefficient()
+        let coeffA = a.extractCoefficient()
         let coeffB = b.extractCoefficient()
         var expA = a.extractExponent()
         let expB = b.extractExponent()
@@ -293,22 +293,21 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             temp /= 10
         }
 
+        var dividend = Decimals.Wide(coeffA)
         let scaleUp = targetDigits + 34 - digitsA
         if scaleUp > 0 {
-            for _ in 0..<scaleUp {
-                coeffA *= 10
-            }
+            dividend = Decimals.Wide.multiplied(dividend, byPowerOf10: scaleUp)
 
             expA -= scaleUp
         }
 
-        let quotient = coeffA / coeffB
-        let remainder = coeffA % coeffB
+        let (wideQuotient, remainder) = dividend.divided(by: coeffB)
+        let (quotient, shift, truncated) = wideQuotient.reducedToFitUInt128()
 
-        let resultExp = expA - expB
+        let resultExp = expA - expB + Decimal.Exponent(shift)
 
         var status: Decimal.Status = .none
-        if remainder != 0 {
+        if remainder != 0 || truncated {
             status = .inexact
         }
 
@@ -318,7 +317,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             sign: resultSign,
             rounding: context.rounding,
             precision: context.precision,
-            sticky: remainder != 0
+            sticky: remainder != 0 || truncated
         )
         status = status.union(roundStatus)
 

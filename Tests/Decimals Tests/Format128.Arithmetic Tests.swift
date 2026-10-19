@@ -5,6 +5,22 @@ import Testing
 extension Decimal.Format128.Test {
     @Suite struct `Edge Case` {
 
+        @Test func `division scales a short dividend without overflowing`() {
+            let half = Decimal.Format128(integerLiteral: 3).operation.divide(2)
+            #expect(half.value == Decimal.Format128.encode(sign: .plus, exponent: Decimal.Exponent(-1), coefficient: 15))
+            #expect(!half.status.contains(.inexact))
+            let third = Decimal.Format128(integerLiteral: 1).operation.divide(3)
+            #expect(
+                third.value
+                    == Decimal.Format128.encode(
+                        sign: .plus,
+                        exponent: Decimal.Exponent(-34),
+                        coefficient: 3_333_333_333_333_333_333_333_333_333_333_333
+                    )
+            )
+            #expect(third.status.contains(.inexact))
+        }
+
         @Test func `addition does not overflow coefficient scaling at large exponent difference`() {
 
             let a = Decimal.Format128.encode(
