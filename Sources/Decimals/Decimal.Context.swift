@@ -1,9 +1,11 @@
+public import Rounding
+
 extension Decimal {
     public struct Context: Sendable, Hashable {
 
         public var precision: Precision
 
-        public var rounding: Rounding
+        public var rounding: Rounding::Rounding
 
         public var traps: Status
 
@@ -17,7 +19,7 @@ extension Decimal {
 
         public init(
             precision: Precision,
-            rounding: Rounding = .even,
+            rounding: Rounding::Rounding = .even,
             traps: Status = .none,
             clamp: Clamp = .none,
             tininess: Tininess = .after,

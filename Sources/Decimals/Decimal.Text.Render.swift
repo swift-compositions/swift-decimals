@@ -14,7 +14,7 @@ extension Decimal.Text where Value == Decimal.Format64 {
 
         var offset = 0
 
-        if base.sign == .negative {
+        if base.sign == .minus {
             unsafe buffer[offset] = UInt8(ascii: "-")
             offset += 1
         }
@@ -262,7 +262,7 @@ extension Decimal.Text where Value == Decimal.Format32 {
 
         var offset = 0
 
-        if base.sign == .negative {
+        if base.sign == .minus {
             unsafe buffer[offset] = UInt8(ascii: "-")
             offset += 1
         }
@@ -500,7 +500,7 @@ extension Decimal.Text where Value == Decimal.Format128 {
 
         var offset = 0
 
-        if base.sign == .negative {
+        if base.sign == .minus {
             unsafe buffer[offset] = UInt8(ascii: "-")
             offset += 1
         }

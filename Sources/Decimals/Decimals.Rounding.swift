@@ -1,3 +1,5 @@
+public import Rounding
+
 extension Decimals {
 
     public enum Rounding {}
@@ -31,8 +33,8 @@ extension Decimals.Rounding {
     public static func round(
         coefficient: UInt64,
         exponent: Decimal.Exponent,
-        sign: Decimal.Sign,
-        rounding: Decimal.Rounding,
+        sign: FloatingPointSign,
+        rounding: Rounding::Rounding,
         precision: Decimal.Precision,
         sticky: Bool = false
     ) -> (coefficient: UInt32, exponent: Decimal.Exponent, status: Decimal.Status) {
@@ -66,33 +68,14 @@ extension Decimals.Rounding {
         let isAboveHalf = remainder > halfDivisor || (sticky && remainder == halfDivisor)
         let isExactHalf = remainder == halfDivisor && !sticky
 
-        var roundUp = false
-        switch rounding {
-        case .ceiling:
-            roundUp = remainderPositive && sign == .positive
-
-        case .floor:
-            roundUp = remainderPositive && sign == .negative
-
-        case .down:
-            roundUp = false
-
-        case .up:
-            roundUp = remainderPositive
-
-        case .even:
-            if isAboveHalf {
-                roundUp = true
-            } else if isExactHalf {
-                roundUp = (quotient % 2) != 0
-            }
-
-        case .away:
-            roundUp = isAboveHalf || isExactHalf
-
-        case .toward:
-            roundUp = isAboveHalf
-        }
+        let comparison: Order.Comparison? =
+            remainderPositive ? (isAboveHalf ? .greater : (isExactHalf ? .equal : .less)) : nil
+        let roundUp =
+            (try? rounding.incrementsMagnitude(
+                isNegative: sign == .minus,
+                integralPartIsOdd: quotient % 2 != 0,
+                fractionComparedToHalf: comparison
+            )) ?? false
 
         var result = quotient
         if roundUp {
@@ -103,12 +86,12 @@ extension Decimals.Rounding {
             status = .inexact
         }
 
-        e = e + roundDigits
+        e += roundDigits
 
         if result > UInt64(Decimal.Format32.coefficientMax()) {
             result /= 10
 
-            e = e + 1
+            e += 1
         }
 
         return (UInt32(truncatingIfNeeded: result), e, status)
@@ -117,8 +100,8 @@ extension Decimals.Rounding {
     public static func round(
         coefficient: UInt128,
         exponent: Decimal.Exponent,
-        sign: Decimal.Sign,
-        rounding: Decimal.Rounding,
+        sign: FloatingPointSign,
+        rounding: Rounding::Rounding,
         precision: Decimal.Precision,
         sticky: Bool = false
     ) -> (coefficient: UInt64, exponent: Decimal.Exponent, status: Decimal.Status) {
@@ -152,33 +135,14 @@ extension Decimals.Rounding {
         let isAboveHalf = remainder > halfDivisor || (sticky && remainder == halfDivisor)
         let isExactHalf = remainder == halfDivisor && !sticky
 
-        var roundUp = false
-        switch rounding {
-        case .ceiling:
-            roundUp = remainderPositive && sign == .positive
-
-        case .floor:
-            roundUp = remainderPositive && sign == .negative
-
-        case .down:
-            roundUp = false
-
-        case .up:
-            roundUp = remainderPositive
-
-        case .even:
-            if isAboveHalf {
-                roundUp = true
-            } else if isExactHalf {
-                roundUp = (quotient % 2) != 0
-            }
-
-        case .away:
-            roundUp = isAboveHalf || isExactHalf
-
-        case .toward:
-            roundUp = isAboveHalf
-        }
+        let comparison: Order.Comparison? =
+            remainderPositive ? (isAboveHalf ? .greater : (isExactHalf ? .equal : .less)) : nil
+        let roundUp =
+            (try? rounding.incrementsMagnitude(
+                isNegative: sign == .minus,
+                integralPartIsOdd: quotient % 2 != 0,
+                fractionComparedToHalf: comparison
+            )) ?? false
 
         var result = quotient
         if roundUp {
@@ -189,12 +153,12 @@ extension Decimals.Rounding {
             status = .inexact
         }
 
-        e = e + roundDigits
+        e += roundDigits
 
         if result > UInt128(Decimal.Format64.coefficientMax()) {
             result /= 10
 
-            e = e + 1
+            e += 1
         }
 
         return (UInt64(truncatingIfNeeded: result), e, status)
@@ -203,8 +167,8 @@ extension Decimals.Rounding {
     public static func round128(
         coefficient: UInt128,
         exponent: Decimal.Exponent,
-        sign: Decimal.Sign,
-        rounding: Decimal.Rounding,
+        sign: FloatingPointSign,
+        rounding: Rounding::Rounding,
         precision: Decimal.Precision,
         sticky: Bool = false
     ) -> (coefficient: UInt128, exponent: Decimal.Exponent, status: Decimal.Status) {
@@ -238,33 +202,14 @@ extension Decimals.Rounding {
         let isAboveHalf = remainder > halfDivisor || (sticky && remainder == halfDivisor)
         let isExactHalf = remainder == halfDivisor && !sticky
 
-        var roundUp = false
-        switch rounding {
-        case .ceiling:
-            roundUp = remainderPositive && sign == .positive
-
-        case .floor:
-            roundUp = remainderPositive && sign == .negative
-
-        case .down:
-            roundUp = false
-
-        case .up:
-            roundUp = remainderPositive
-
-        case .even:
-            if isAboveHalf {
-                roundUp = true
-            } else if isExactHalf {
-                roundUp = (quotient % 2) != 0
-            }
-
-        case .away:
-            roundUp = isAboveHalf || isExactHalf
-
-        case .toward:
-            roundUp = isAboveHalf
-        }
+        let comparison: Order.Comparison? =
+            remainderPositive ? (isAboveHalf ? .greater : (isExactHalf ? .equal : .less)) : nil
+        let roundUp =
+            (try? rounding.incrementsMagnitude(
+                isNegative: sign == .minus,
+                integralPartIsOdd: quotient % 2 != 0,
+                fractionComparedToHalf: comparison
+            )) ?? false
 
         var result = quotient
         if roundUp {
@@ -275,12 +220,12 @@ extension Decimals.Rounding {
             status = .inexact
         }
 
-        e = e + roundDigits
+        e += roundDigits
 
         if result > Decimal.Format128.coefficientMax() {
             result /= 10
 
-            e = e + 1
+            e += 1
         }
 
         return (result, e, status)

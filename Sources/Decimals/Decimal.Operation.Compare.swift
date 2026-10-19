@@ -77,16 +77,7 @@ extension Decimal.Operation where Value == Decimal.Format32 {
         if diff > 7 { return .greater }
         if diff < -7 { return .less }
 
-        if diff > 0 {
-
-            var scaled = UInt64(aCoef)
-            for _ in 0..<diff {
-                scaled *= 10
-            }
-            if scaled > UInt64(bCoef) { return .greater }
-            if scaled < UInt64(bCoef) { return .less }
-            return .equal
-        } else {
+        guard diff > 0 else {
 
             var scaled = UInt64(bCoef)
             for _ in 0..<(-diff) {
@@ -96,6 +87,14 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             if UInt64(aCoef) < scaled { return .less }
             return .equal
         }
+
+        var scaled = UInt64(aCoef)
+        for _ in 0..<diff {
+            scaled *= 10
+        }
+        if scaled > UInt64(bCoef) { return .greater }
+        if scaled < UInt64(bCoef) { return .less }
+        return .equal
     }
 }
 
@@ -178,16 +177,7 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         if diff > 16 { return .greater }
         if diff < -16 { return .less }
 
-        if diff > 0 {
-            var scaled = UInt128(aCoef)
-            for _ in 0..<diff {
-                scaled *= 10
-            }
-            let bCoef128 = UInt128(bCoef)
-            if scaled > bCoef128 { return .greater }
-            if scaled < bCoef128 { return .less }
-            return .equal
-        } else {
+        guard diff > 0 else {
             var scaled = UInt128(bCoef)
             for _ in 0..<(-diff) {
                 scaled *= 10
@@ -197,6 +187,15 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             if aCoef128 < scaled { return .less }
             return .equal
         }
+
+        var scaled = UInt128(aCoef)
+        for _ in 0..<diff {
+            scaled *= 10
+        }
+        let bCoef128 = UInt128(bCoef)
+        if scaled > bCoef128 { return .greater }
+        if scaled < bCoef128 { return .less }
+        return .equal
     }
 }
 
@@ -279,21 +278,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
         if diff > 34 { return .greater }
         if diff < -34 { return .less }
 
-        if diff > 0 {
-
-            var scaled = aCoef
-            for _ in 0..<diff {
-                let (result, overflow) = scaled.multipliedReportingOverflow(by: 10)
-                if overflow {
-
-                    return .greater
-                }
-                scaled = result
-            }
-            if scaled > bCoef { return .greater }
-            if scaled < bCoef { return .less }
-            return .equal
-        } else {
+        guard diff > 0 else {
 
             var scaled = bCoef
             for _ in 0..<(-diff) {
@@ -308,5 +293,18 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             if aCoef < scaled { return .less }
             return .equal
         }
+
+        var scaled = aCoef
+        for _ in 0..<diff {
+            let (result, overflow) = scaled.multipliedReportingOverflow(by: 10)
+            if overflow {
+
+                return .greater
+            }
+            scaled = result
+        }
+        if scaled > bCoef { return .greater }
+        if scaled < bCoef { return .less }
+        return .equal
     }
 }

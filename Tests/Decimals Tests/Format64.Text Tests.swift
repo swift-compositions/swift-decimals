@@ -82,12 +82,11 @@ extension Decimal.Format64.Test {
             #expect(value.test.negative)
         }
 
-        @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws
-        {
+        @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws {
 
             let value = try Decimal.Format64.text([UInt8]("12345678901234567".utf8))
             let expected = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(1),
                 coefficient: 1_234_567_890_123_457
             )
@@ -123,7 +122,7 @@ extension Decimal.Format64.Test {
         }
 
         @Test func `render Negative Infinity`() {
-            let value = Decimal.Format64.infinity(sign: .negative)
+            let value = Decimal.Format64.infinity(sign: .minus)
             var buffer: [UInt8] = []
             value.text.render(appending: &buffer)
             #expect(String(decoding: buffer, as: UTF8.self) == "-Infinity")
@@ -142,7 +141,7 @@ extension Decimal.Format64.Test {
         {
 
             let value = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(369),
                 coefficient: 1
             )
@@ -159,7 +158,7 @@ extension Decimal.Format64.Test {
         {
 
             let value = Decimal.Format64.encode(
-                sign: .negative,
+                sign: .minus,
                 exponent: Decimal.Exponent.Format64.min,
                 coefficient: 1
             )
@@ -171,7 +170,7 @@ extension Decimal.Format64.Test {
 
         @Test func `render into traps when buffer is smaller than required capacity`() {
             let value = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(369),
                 coefficient: 1
             )
@@ -185,7 +184,7 @@ extension Decimal.Format64.Test {
         {
 
             let value = Decimal.Format64.encode(
-                sign: .negative,
+                sign: .minus,
                 exponent: Decimal.Exponent(369),
                 coefficient: 9_007_199_254_740_991
             )

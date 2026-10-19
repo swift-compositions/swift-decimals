@@ -10,10 +10,10 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
 
         var index = 0
 
-        var sign: Decimal.Sign = .positive
+        var sign: FloatingPointSign = .plus
         if index < bytes.count {
             if unsafe bytes[index] == UInt8(ascii: "-") {
-                sign = .negative
+                sign = .minus
                 index += 1
             } else if unsafe bytes[index] == UInt8(ascii: "+") {
                 index += 1
@@ -70,7 +70,7 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
                     throw .syntax(offset: index + 3)
                 }
                 let nan = Value.nan()
-                return sign == .negative ? nan.negated : nan
+                return sign == .minus ? nan.negated : nan
             }
         }
 
@@ -147,17 +147,16 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
                 var hasExpDigits = false
                 while index < bytes.count {
                     let b = unsafe bytes[index]
-                    if b >= UInt8(ascii: "0") && b <= UInt8(ascii: "9") {
-                        hasExpDigits = true
-                        if expValue < expSentinel {
-                            expValue = expValue * 10 + Int(b - UInt8(ascii: "0"))
-                        } else {
-                            expTooLarge = true
-                        }
-                        index += 1
-                    } else {
+                    guard b >= UInt8(ascii: "0") && b <= UInt8(ascii: "9") else {
                         break
                     }
+                    hasExpDigits = true
+                    if expValue < expSentinel {
+                        expValue = expValue * 10 + Int(b - UInt8(ascii: "0"))
+                    } else {
+                        expTooLarge = true
+                    }
+                    index += 1
                 }
 
                 guard hasExpDigits else {
@@ -202,14 +201,9 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
         _ bytes: ArraySlice<UInt8>,
         context: Decimal.Context = .format64
     ) throws(Decimal.Text.Error) -> Value {
-        var result: Result<Value, Decimal.Text.Error>!
-        bytes.withUnsafeBufferPointer { buffer in
-            do {
-                result = unsafe .success(try self(buffer, context: context))
-            } catch let error as Decimal._TextError {
-                result = .failure(error)
-            } catch {
-                fatalError("Unexpected error type")
+        let result = bytes.withUnsafeBufferPointer { buffer in
+            Result { () throws(Decimal.Text.Error) -> Value in
+                unsafe try self(buffer, context: context)
             }
         }
         return try result.get()
@@ -219,14 +213,9 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
         _ bytes: [UInt8],
         context: Decimal.Context = .format64
     ) throws(Decimal.Text.Error) -> Value {
-        var result: Result<Value, Decimal.Text.Error>!
-        bytes.withUnsafeBufferPointer { buffer in
-            do {
-                result = unsafe .success(try self(buffer, context: context))
-            } catch let error as Decimal._TextError {
-                result = .failure(error)
-            } catch {
-                fatalError("Unexpected error type")
+        let result = bytes.withUnsafeBufferPointer { buffer in
+            Result { () throws(Decimal.Text.Error) -> Value in
+                unsafe try self(buffer, context: context)
             }
         }
         return try result.get()
@@ -245,10 +234,10 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
 
         var index = 0
 
-        var sign: Decimal.Sign = .positive
+        var sign: FloatingPointSign = .plus
         if index < bytes.count {
             if unsafe bytes[index] == UInt8(ascii: "-") {
-                sign = .negative
+                sign = .minus
                 index += 1
             } else if unsafe bytes[index] == UInt8(ascii: "+") {
                 index += 1
@@ -303,7 +292,7 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
                     throw .syntax(offset: index + 3)
                 }
                 let nan = Value.nan()
-                return sign == .negative ? nan.negated : nan
+                return sign == .minus ? nan.negated : nan
             }
         }
 
@@ -379,17 +368,16 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
                 var hasExpDigits = false
                 while index < bytes.count {
                     let b = unsafe bytes[index]
-                    if b >= UInt8(ascii: "0") && b <= UInt8(ascii: "9") {
-                        hasExpDigits = true
-                        if expValue < expSentinel {
-                            expValue = expValue * 10 + Int(b - UInt8(ascii: "0"))
-                        } else {
-                            expTooLarge = true
-                        }
-                        index += 1
-                    } else {
+                    guard b >= UInt8(ascii: "0") && b <= UInt8(ascii: "9") else {
                         break
                     }
+                    hasExpDigits = true
+                    if expValue < expSentinel {
+                        expValue = expValue * 10 + Int(b - UInt8(ascii: "0"))
+                    } else {
+                        expTooLarge = true
+                    }
+                    index += 1
                 }
 
                 guard hasExpDigits else {
@@ -434,14 +422,9 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
         _ bytes: ArraySlice<UInt8>,
         context: Decimal.Context = .format32
     ) throws(Decimal.Text.Error) -> Value {
-        var result: Result<Value, Decimal.Text.Error>!
-        bytes.withUnsafeBufferPointer { buffer in
-            do {
-                result = unsafe .success(try self(buffer, context: context))
-            } catch let error as Decimal._TextError {
-                result = .failure(error)
-            } catch {
-                fatalError("Unexpected error type")
+        let result = bytes.withUnsafeBufferPointer { buffer in
+            Result { () throws(Decimal.Text.Error) -> Value in
+                unsafe try self(buffer, context: context)
             }
         }
         return try result.get()
@@ -451,14 +434,9 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
         _ bytes: [UInt8],
         context: Decimal.Context = .format32
     ) throws(Decimal.Text.Error) -> Value {
-        var result: Result<Value, Decimal.Text.Error>!
-        bytes.withUnsafeBufferPointer { buffer in
-            do {
-                result = unsafe .success(try self(buffer, context: context))
-            } catch let error as Decimal._TextError {
-                result = .failure(error)
-            } catch {
-                fatalError("Unexpected error type")
+        let result = bytes.withUnsafeBufferPointer { buffer in
+            Result { () throws(Decimal.Text.Error) -> Value in
+                unsafe try self(buffer, context: context)
             }
         }
         return try result.get()
@@ -477,10 +455,10 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
 
         var index = 0
 
-        var sign: Decimal.Sign = .positive
+        var sign: FloatingPointSign = .plus
         if index < bytes.count {
             if unsafe bytes[index] == UInt8(ascii: "-") {
-                sign = .negative
+                sign = .minus
                 index += 1
             } else if unsafe bytes[index] == UInt8(ascii: "+") {
                 index += 1
@@ -535,7 +513,7 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
                     throw .syntax(offset: index + 3)
                 }
                 let nan = Value.nan()
-                return sign == .negative ? nan.negated : nan
+                return sign == .minus ? nan.negated : nan
             }
         }
 
@@ -611,17 +589,16 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
                 var hasExpDigits = false
                 while index < bytes.count {
                     let b = unsafe bytes[index]
-                    if b >= UInt8(ascii: "0") && b <= UInt8(ascii: "9") {
-                        hasExpDigits = true
-                        if expValue < expSentinel {
-                            expValue = expValue * 10 + Int(b - UInt8(ascii: "0"))
-                        } else {
-                            expTooLarge = true
-                        }
-                        index += 1
-                    } else {
+                    guard b >= UInt8(ascii: "0") && b <= UInt8(ascii: "9") else {
                         break
                     }
+                    hasExpDigits = true
+                    if expValue < expSentinel {
+                        expValue = expValue * 10 + Int(b - UInt8(ascii: "0"))
+                    } else {
+                        expTooLarge = true
+                    }
+                    index += 1
                 }
 
                 guard hasExpDigits else {
@@ -666,14 +643,9 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
         _ bytes: ArraySlice<UInt8>,
         context: Decimal.Context = .format128
     ) throws(Decimal.Text.Error) -> Value {
-        var result: Result<Value, Decimal.Text.Error>!
-        bytes.withUnsafeBufferPointer { buffer in
-            do {
-                result = unsafe .success(try self(buffer, context: context))
-            } catch let error as Decimal._TextError {
-                result = .failure(error)
-            } catch {
-                fatalError("Unexpected error type")
+        let result = bytes.withUnsafeBufferPointer { buffer in
+            Result { () throws(Decimal.Text.Error) -> Value in
+                unsafe try self(buffer, context: context)
             }
         }
         return try result.get()
@@ -683,14 +655,9 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
         _ bytes: [UInt8],
         context: Decimal.Context = .format128
     ) throws(Decimal.Text.Error) -> Value {
-        var result: Result<Value, Decimal.Text.Error>!
-        bytes.withUnsafeBufferPointer { buffer in
-            do {
-                result = unsafe .success(try self(buffer, context: context))
-            } catch let error as Decimal._TextError {
-                result = .failure(error)
-            } catch {
-                fatalError("Unexpected error type")
+        let result = bytes.withUnsafeBufferPointer { buffer in
+            Result { () throws(Decimal.Text.Error) -> Value in
+                unsafe try self(buffer, context: context)
             }
         }
         return try result.get()
