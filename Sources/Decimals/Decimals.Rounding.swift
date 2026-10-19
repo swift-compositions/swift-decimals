@@ -1,3 +1,4 @@
+import Division
 public import Rounding
 
 extension Decimals {
@@ -229,5 +230,34 @@ extension Decimals.Rounding {
         }
 
         return (result, e, status)
+    }
+}
+
+extension Decimals.Rounding {
+
+    static func dropping<Coefficient: FixedWidthInteger & UnsignedInteger>(
+        _ digits: Int,
+        from coefficient: Coefficient,
+        sign: FloatingPointSign,
+        rounding: Rounding::Rounding
+    ) -> Coefficient {
+        guard digits > 0 else {
+            return coefficient
+        }
+        guard digits <= 37 else {
+            let increments = try? rounding.incrementsMagnitude(
+                isNegative: sign == .minus,
+                integralPartIsOdd: false,
+                fractionComparedToHalf: coefficient == 0 ? nil : .less
+            )
+            return increments == true ? 1 : 0
+        }
+        var divisor: Int128 = 1
+        for _ in 0..<digits {
+            divisor *= 10
+        }
+        let dividend = sign == .minus ? -Int128(coefficient) : Int128(coefficient)
+        let quotient = (try? Division.rounded(dividend, by: divisor, rounding: rounding).quotient) ?? dividend / divisor
+        return Coefficient(quotient.magnitude)
     }
 }

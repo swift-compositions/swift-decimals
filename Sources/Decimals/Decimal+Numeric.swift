@@ -60,18 +60,7 @@ extension Decimal.Format64: @retroactive SignedNumeric {
 
 extension Decimal.Format32: @retroactive ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int32) {
-        if value == 0 {
-            self = .zero()
-            return
-        }
-
-        let sign: FloatingPointSign = value < 0 ? .minus : .plus
-        let magnitude = value < 0 ? UInt32(bitPattern: -value) : UInt32(value)
-
-        let biasedExponent: UInt32 = 101
-        let signBit: UInt32 = sign == .minus ? 0x8000_0000 : 0
-
-        self.init(bits: signBit | (biasedExponent << 23) | magnitude)
+        self.init(rounding: value)
     }
 }
 
@@ -98,7 +87,7 @@ extension Decimal.Format32: @retroactive Swift::Numeric {
         guard let int32 = Int32(exactly: source) else {
             return nil
         }
-        self.init(integerLiteral: int32)
+        self.init(int32)
     }
 
     public static func * (lhs: Self, rhs: Self) -> Self {
@@ -122,18 +111,7 @@ extension Decimal.Format32: @retroactive SignedNumeric {
 
 extension Decimal.Format128: @retroactive ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int64) {
-        if value == 0 {
-            self = .zero()
-            return
-        }
-
-        let sign: FloatingPointSign = value < 0 ? .minus : .plus
-        let magnitude = value < 0 ? UInt64(bitPattern: -value) : UInt64(value)
-
-        let biasedExponent: UInt64 = 6176
-        let signBit: UInt64 = sign == .minus ? 0x8000_0000_0000_0000 : 0
-
-        self.init(high: signBit | (biasedExponent << 49), low: magnitude)
+        self.init(rounding: value)
     }
 }
 
