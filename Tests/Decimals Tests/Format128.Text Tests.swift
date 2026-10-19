@@ -15,7 +15,7 @@ extension Decimal.Format128.Test {
         {
 
             let value = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(6111),
                 coefficient: 1
             )
@@ -31,7 +31,7 @@ extension Decimal.Format128.Test {
             `render appending does not overflow scratch buffer for min negative exponent plain style`()
         {
             let value = Decimal.Format128.encode(
-                sign: .negative,
+                sign: .minus,
                 exponent: Decimal.Exponent.Format128.min,
                 coefficient: 1
             )
@@ -43,7 +43,7 @@ extension Decimal.Format128.Test {
 
         @Test func `render into traps when buffer is smaller than required capacity`() {
             let value = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(6111),
                 coefficient: 1
             )
@@ -76,7 +76,7 @@ extension Decimal.Format128.Test {
                 [UInt8]((String(repeating: "1", count: 34) + "7").utf8)
             )
             let expected = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(1),
                 coefficient: UInt128(String(repeating: "1", count: 33) + "2")!
             )

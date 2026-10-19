@@ -30,7 +30,7 @@ extension Decimal.Format64 {
 
         @Test func `a negative literal keeps its sign`() {
             let value: Decimal.Format64 = -42
-            #expect(value.sign == .negative)
+            #expect(value.sign == .minus)
             #expect(value.extractCoefficient() == 42)
         }
     }

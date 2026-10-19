@@ -10,7 +10,7 @@ extension Decimal.Format64 {
 
 extension Decimal.Format64: @retroactive Comparable {
     public static func < (lhs: Self, rhs: Self) -> Bool {
-        lhs.operation.precedes(rhs)
+        lhs.operation.compare(rhs) == .less
     }
 }
 
@@ -26,7 +26,7 @@ extension Decimal.Format32 {
 
 extension Decimal.Format32: @retroactive Comparable {
     public static func < (lhs: Self, rhs: Self) -> Bool {
-        lhs.operation.precedes(rhs)
+        lhs.operation.compare(rhs) == .less
     }
 }
 
@@ -42,6 +42,6 @@ extension Decimal.Format128 {
 
 extension Decimal.Format128: @retroactive Comparable {
     public static func < (lhs: Self, rhs: Self) -> Bool {
-        lhs.operation.precedes(rhs)
+        lhs.operation.compare(rhs) == .less
     }
 }

@@ -10,10 +10,10 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
 
         var index = 0
 
-        var sign: Decimal.Sign = .positive
+        var sign: FloatingPointSign = .plus
         if index < bytes.count {
             if unsafe bytes[index] == UInt8(ascii: "-") {
-                sign = .negative
+                sign = .minus
                 index += 1
             } else if unsafe bytes[index] == UInt8(ascii: "+") {
                 index += 1
@@ -70,7 +70,7 @@ extension Decimal.Text.Parse where Value == Decimal.Format64 {
                     throw .syntax(offset: index + 3)
                 }
                 let nan = Value.nan()
-                return sign == .negative ? nan.negated : nan
+                return sign == .minus ? nan.negated : nan
             }
         }
 
@@ -234,10 +234,10 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
 
         var index = 0
 
-        var sign: Decimal.Sign = .positive
+        var sign: FloatingPointSign = .plus
         if index < bytes.count {
             if unsafe bytes[index] == UInt8(ascii: "-") {
-                sign = .negative
+                sign = .minus
                 index += 1
             } else if unsafe bytes[index] == UInt8(ascii: "+") {
                 index += 1
@@ -292,7 +292,7 @@ extension Decimal.Text.Parse where Value == Decimal.Format32 {
                     throw .syntax(offset: index + 3)
                 }
                 let nan = Value.nan()
-                return sign == .negative ? nan.negated : nan
+                return sign == .minus ? nan.negated : nan
             }
         }
 
@@ -455,10 +455,10 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
 
         var index = 0
 
-        var sign: Decimal.Sign = .positive
+        var sign: FloatingPointSign = .plus
         if index < bytes.count {
             if unsafe bytes[index] == UInt8(ascii: "-") {
-                sign = .negative
+                sign = .minus
                 index += 1
             } else if unsafe bytes[index] == UInt8(ascii: "+") {
                 index += 1
@@ -513,7 +513,7 @@ extension Decimal.Text.Parse where Value == Decimal.Format128 {
                     throw .syntax(offset: index + 3)
                 }
                 let nan = Value.nan()
-                return sign == .negative ? nan.negated : nan
+                return sign == .minus ? nan.negated : nan
             }
         }
 

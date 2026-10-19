@@ -6,7 +6,7 @@ extension Decimal.Operation where Value == Decimal.Format32 {
         let a = base
         let b = other
 
-        let resultSign: Decimal.Sign = (a.sign == b.sign) ? .positive : .negative
+        let resultSign: FloatingPointSign = (a.sign == b.sign) ? .plus : .minus
 
         if a.test.signaling || b.test.signaling {
             let payload =
@@ -65,7 +65,7 @@ extension Decimal.Operation where Value == Decimal.Format32 {
                 coeffA *= 10
             }
 
-            expA = expA - scaleUp
+            expA -= scaleUp
         }
 
         let quotient = coeffA / coeffB
@@ -122,7 +122,7 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         let a = base
         let b = other
 
-        let resultSign: Decimal.Sign = (a.sign == b.sign) ? .positive : .negative
+        let resultSign: FloatingPointSign = (a.sign == b.sign) ? .plus : .minus
 
         if a.test.signaling || b.test.signaling {
             let payload =
@@ -183,7 +183,7 @@ extension Decimal.Operation where Value == Decimal.Format64 {
                 coeffA *= 10
             }
 
-            expA = expA - scaleUp
+            expA -= scaleUp
         }
 
         let quotient = coeffA / coeffB
@@ -240,7 +240,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
         let a = base
         let b = other
 
-        let resultSign: Decimal.Sign = (a.sign == b.sign) ? .positive : .negative
+        let resultSign: FloatingPointSign = (a.sign == b.sign) ? .plus : .minus
 
         if a.test.signaling || b.test.signaling {
             let payload =
@@ -299,7 +299,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                 coeffA *= 10
             }
 
-            expA = expA - scaleUp
+            expA -= scaleUp
         }
 
         let quotient = coeffA / coeffB

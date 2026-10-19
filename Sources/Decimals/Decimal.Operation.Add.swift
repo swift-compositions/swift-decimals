@@ -1,3 +1,5 @@
+import Rounding
+
 extension Decimal.Operation where Value == Decimal.Format32 {
     public func add(
         _ other: Value,
@@ -34,9 +36,9 @@ extension Decimal.Operation where Value == Decimal.Format32 {
         }
 
         if a.test.zero && b.test.zero {
-            let resultSign: Decimal.Sign =
-                (a.sign == .negative && b.sign == .negative)
-                ? .negative : (context.rounding == .floor ? .negative : .positive)
+            let resultSign: FloatingPointSign =
+                (a.sign == .minus && b.sign == .minus)
+                ? .minus : (context.rounding == .down ? .minus : .plus)
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
         if a.test.zero {
@@ -85,7 +87,7 @@ extension Decimal.Operation where Value == Decimal.Format32 {
             expA = expB
         }
 
-        let resultSign: Decimal.Sign
+        let resultSign: FloatingPointSign
         let resultCoeff: UInt64
 
         if signA == signB {
@@ -102,7 +104,7 @@ extension Decimal.Operation where Value == Decimal.Format32 {
         }
 
         if resultCoeff == 0 {
-            let zeroSign: Decimal.Sign = context.rounding == .floor ? .negative : .positive
+            let zeroSign: FloatingPointSign = context.rounding == .down ? .minus : .plus
             return Decimal.Outcome(value: .zero(sign: zeroSign), status: .none)
         }
 
@@ -171,9 +173,9 @@ extension Decimal.Operation where Value == Decimal.Format64 {
 
         if a.test.zero && b.test.zero {
 
-            let resultSign: Decimal.Sign =
-                (a.sign == .negative && b.sign == .negative)
-                ? .negative : (context.rounding == .floor ? .negative : .positive)
+            let resultSign: FloatingPointSign =
+                (a.sign == .minus && b.sign == .minus)
+                ? .minus : (context.rounding == .down ? .minus : .plus)
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
         if a.test.zero {
@@ -224,7 +226,7 @@ extension Decimal.Operation where Value == Decimal.Format64 {
             expA = expB
         }
 
-        let resultSign: Decimal.Sign
+        let resultSign: FloatingPointSign
         let resultCoeff: UInt128
 
         if signA == signB {
@@ -243,7 +245,7 @@ extension Decimal.Operation where Value == Decimal.Format64 {
         }
 
         if resultCoeff == 0 {
-            let zeroSign: Decimal.Sign = context.rounding == .floor ? .negative : .positive
+            let zeroSign: FloatingPointSign = context.rounding == .down ? .minus : .plus
             return Decimal.Outcome(value: .zero(sign: zeroSign), status: .none)
         }
 
@@ -310,9 +312,9 @@ extension Decimal.Operation where Value == Decimal.Format128 {
         }
 
         if a.test.zero && b.test.zero {
-            let resultSign: Decimal.Sign =
-                (a.sign == .negative && b.sign == .negative)
-                ? .negative : (context.rounding == .floor ? .negative : .positive)
+            let resultSign: FloatingPointSign =
+                (a.sign == .minus && b.sign == .minus)
+                ? .minus : (context.rounding == .down ? .minus : .plus)
             return Decimal.Outcome(value: .zero(sign: resultSign), status: .none)
         }
         if a.test.zero {
@@ -340,7 +342,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                     byPowerOf10: diff.rawValue
                 )
                 let wideA = Decimals.Wide(coeffA)
-                let resultSign: Decimal.Sign
+                let resultSign: FloatingPointSign
                 let wideSum: Decimals.Wide
                 if signA == signB {
                     resultSign = signA
@@ -353,7 +355,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                     wideSum = scaledB.subtracting(wideA)
                 }
                 if wideSum.isZero {
-                    let zeroSign: Decimal.Sign = context.rounding == .floor ? .negative : .positive
+                    let zeroSign: FloatingPointSign = context.rounding == .down ? .minus : .plus
                     return Decimal.Outcome(value: .zero(sign: zeroSign), status: .none)
                 }
                 let (reduced, shift, sticky) = wideSum.reducedToFitUInt128()
@@ -409,7 +411,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                     byPowerOf10: diff.rawValue
                 )
                 let wideB = Decimals.Wide(coeffB)
-                let resultSign: Decimal.Sign
+                let resultSign: FloatingPointSign
                 let wideSum: Decimals.Wide
                 if signA == signB {
                     resultSign = signA
@@ -422,7 +424,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
                     wideSum = wideB.subtracting(scaledA)
                 }
                 if wideSum.isZero {
-                    let zeroSign: Decimal.Sign = context.rounding == .floor ? .negative : .positive
+                    let zeroSign: FloatingPointSign = context.rounding == .down ? .minus : .plus
                     return Decimal.Outcome(value: .zero(sign: zeroSign), status: .none)
                 }
                 let (reduced, shift, sticky) = wideSum.reducedToFitUInt128()
@@ -469,7 +471,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
             )
         }
 
-        let resultSign: Decimal.Sign
+        let resultSign: FloatingPointSign
         let resultCoeff: UInt128
 
         if signA == signB {
@@ -486,7 +488,7 @@ extension Decimal.Operation where Value == Decimal.Format128 {
         }
 
         if resultCoeff == 0 {
-            let zeroSign: Decimal.Sign = context.rounding == .floor ? .negative : .positive
+            let zeroSign: FloatingPointSign = context.rounding == .down ? .minus : .plus
             return Decimal.Outcome(value: .zero(sign: zeroSign), status: .none)
         }
 

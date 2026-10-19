@@ -35,7 +35,7 @@ extension Decimal.Format64 {
 
         @Test func `addition Opposite Infinity`() {
             let posInf = Decimal.Format64.infinity()
-            let negInf = Decimal.Format64.infinity(sign: .negative)
+            let negInf = Decimal.Format64.infinity(sign: .minus)
             let result = posInf + negInf
             #expect(result.test.nan)
         }
@@ -142,12 +142,12 @@ extension Decimal.Format64.Test {
         @Test func `addition does not overflow coefficient scaling at large exponent difference`() {
 
             let a = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 9_007_199_254_740_991
             )
             let b = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-38),
                 coefficient: 1
             )
@@ -161,17 +161,17 @@ extension Decimal.Format64.Test {
         {
 
             let x = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let y = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let z = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-100),
                 coefficient: 1
             )
@@ -185,23 +185,23 @@ extension Decimal.Format64.Test {
         {
 
             let x = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 5_000_000_000_000_000
             )
             let y = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 7_000_000_000_000_001
             )
             let z = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-10),
                 coefficient: 1_234_567
             )
             let result = x.operation.fuse(y, z)
             let expected = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(16),
                 coefficient: 3_500_000_000_000_001
             )
@@ -216,23 +216,23 @@ extension Decimal.Format64.Test {
         {
 
             let x = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let y = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let z = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-25),
                 coefficient: 5_000_000_000_000_000
             )
             let result = x.operation.fuse(y, z)
             let expected = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-15),
                 coefficient: 1_000_000_000_500_000
             )
@@ -247,28 +247,28 @@ extension Decimal.Format64.Test {
         {
 
             let x = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 8_190_249_936_086_788
             )
             let y = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 917_372_637_240_375
             )
             let z = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-3),
                 coefficient: 6_635_049_452_689_808
             )
             let result = x.operation.fuse(y, z)
             let wrongPreFix = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(15),
                 coefficient: 7_513_511_183_525_749
             )
             let expected = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(15),
                 coefficient: 7_513_511_183_525_750
             )
@@ -282,28 +282,28 @@ extension Decimal.Format64.Test {
         {
 
             let x = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 4_000_000_000_000_001
             )
             let y = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 5
             )
             let z = Decimal.Format64.encode(
-                sign: .negative,
+                sign: .minus,
                 exponent: Decimal.Exponent(-2),
                 coefficient: 1
             )
             let result = x.operation.fuse(y, z)
             let wrongPreFix = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(1),
                 coefficient: 2_000_000_000_000_001
             )
             let expected = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(1),
                 coefficient: 2_000_000_000_000_000
             )
@@ -317,23 +317,23 @@ extension Decimal.Format64.Test {
         {
 
             let x = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(17),
                 coefficient: 1
             )
             let y = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let z = Decimal.Format64.encode(
-                sign: .negative,
+                sign: .minus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 6
             )
             let result = x.operation.fuse(y, z)
             let expected = Decimal.Format64.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(1),
                 coefficient: 9_999_999_999_999_999
             )

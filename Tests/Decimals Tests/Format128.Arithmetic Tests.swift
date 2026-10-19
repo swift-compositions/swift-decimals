@@ -8,12 +8,12 @@ extension Decimal.Format128.Test {
         @Test func `addition does not overflow coefficient scaling at large exponent difference`() {
 
             let a = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let b = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-70),
                 coefficient: 1
             )
@@ -27,17 +27,17 @@ extension Decimal.Format128.Test {
         {
 
             let x = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let y = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let z = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-100),
                 coefficient: 1
             )
@@ -45,7 +45,7 @@ extension Decimal.Format128.Test {
             #expect(
                 result.value
                     == Decimal.Format128.encode(
-                        sign: .positive,
+                        sign: .plus,
                         exponent: Decimal.Exponent(0),
                         coefficient: 1
                     )
@@ -58,18 +58,18 @@ extension Decimal.Format128.Test {
         {
 
             let a = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 9_999_999_999_999_999_999_999_999_999_999_999
             )
             let b = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(5),
                 coefficient: 9_999_999_999_999_999_999_999_999_999_999_999
             )
             let result = a.operation.add(b)
             let expected = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(6),
                 coefficient: 1_000_010_000_000_000_000_000_000_000_000_000
             )
@@ -84,12 +84,12 @@ extension Decimal.Format128.Test {
         {
 
             let a = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let b = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-40),
                 coefficient: 1
             )
@@ -104,23 +104,23 @@ extension Decimal.Format128.Test {
         {
 
             let x = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let y = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 9_999_999_999_999_999_999_999_999_999_999_999
             )
             let z = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(5),
                 coefficient: 9_999_999_999_999_999_999_999_999_999_999_999
             )
             let result = x.operation.fuse(y, z)
             let expected = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(6),
                 coefficient: 1_000_010_000_000_000_000_000_000_000_000_000
             )
@@ -135,18 +135,18 @@ extension Decimal.Format128.Test {
         {
 
             let a = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 5_000_000_000_000_000_000_000_000_000_000_000
             )
             let b = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(36),
                 coefficient: 1
             )
             let result = a.operation.add(b)
             let expected = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(3),
                 coefficient: 1_005_000_000_000_000_000_000_000_000_000_000
             )
@@ -161,23 +161,23 @@ extension Decimal.Format128.Test {
         {
 
             let x = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let y = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let z = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-50),
                 coefficient: 5_000_000_000_000_000_000_000_000_000_000_000
             )
             let result = x.operation.fuse(y, z)
             let expected = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-33),
                 coefficient: 1_000_000_000_000_000_050_000_000_000_000_000
             )
@@ -192,28 +192,28 @@ extension Decimal.Format128.Test {
         {
 
             let x = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1_698_729_580_379_692_341
             )
             let y = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 2_071_386_661_409_561_673
             )
             let z = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(-19),
                 coefficient: 88_215_156_206_619_817_185
             )
             let result = x.operation.fuse(y, z)
             let wrongPreFix = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(3),
                 coefficient: 3_518_725_794_140_356_559_346_158_171_405_246
             )
             let expected = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(3),
                 coefficient: 3_518_725_794_140_356_559_346_158_171_405_247
             )
@@ -227,28 +227,28 @@ extension Decimal.Format128.Test {
         {
 
             let x = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 4_000_000_000_000_000_000_000_000_000_000_001
             )
             let y = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 5
             )
             let z = Decimal.Format128.encode(
-                sign: .negative,
+                sign: .minus,
                 exponent: Decimal.Exponent(-2),
                 coefficient: 1
             )
             let result = x.operation.fuse(y, z)
             let wrongPreFix = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(1),
                 coefficient: 2_000_000_000_000_000_000_000_000_000_000_001
             )
             let expected = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(1),
                 coefficient: 2_000_000_000_000_000_000_000_000_000_000_000
             )
@@ -262,18 +262,18 @@ extension Decimal.Format128.Test {
         {
 
             let a = Decimal.Format128.encode(
-                sign: .negative,
+                sign: .minus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 6
             )
             let b = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(35),
                 coefficient: 1
             )
             let result = a.operation.add(b)
             let expected = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(1),
                 coefficient: 9_999_999_999_999_999_999_999_999_999_999_999
             )
@@ -288,23 +288,23 @@ extension Decimal.Format128.Test {
         {
 
             let x = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(35),
                 coefficient: 1
             )
             let y = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 1
             )
             let z = Decimal.Format128.encode(
-                sign: .negative,
+                sign: .minus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 6
             )
             let result = x.operation.fuse(y, z)
             let expected = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(1),
                 coefficient: 9_999_999_999_999_999_999_999_999_999_999_999
             )
@@ -319,27 +319,27 @@ extension Decimal.Format128.Test {
         {
 
             let x = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 9_999_999_999_999_999_999_999_999_999_999_999
             )
             let y = Decimal.Format128.encode(
-                sign: .positive,
+                sign: .plus,
                 exponent: Decimal.Exponent(0),
                 coefficient: 34_028
             )
             let z = Decimal.Format128.encode(
-                sign: .negative,
+                sign: .minus,
                 exponent: Decimal.Exponent(73),
                 coefficient: 1
             )
             let result = x.operation.fuse(y, z)
             let expected = Decimal.Format128.encode(
-                sign: .negative,
+                sign: .minus,
                 exponent: Decimal.Exponent(40),
                 coefficient: 1_000_000_000_000_000_000_000_000_000_000_000
             )
-            #expect(result.value != z)
+            #expect(result.value.extractExponent() == Decimal.Exponent(40))
             #expect(result.value == expected)
             #expect(result.status.contains(.inexact))
         }

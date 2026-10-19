@@ -1,6 +1,6 @@
 extension Decimal.Format64: @retroactive ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int64) {
-        let sign: Decimal.Sign = value < 0 ? .negative : .positive
+        let sign: FloatingPointSign = value < 0 ? .minus : .plus
         let context = Decimal.Context.format64
         let (coefficient, exponent, _) = Decimals.Rounding.round(
             coefficient: UInt128(value.magnitude),
@@ -29,7 +29,7 @@ extension Decimal.Format64: @retroactive Swift::Numeric {
     public typealias Magnitude = Self
 
     public var magnitude: Magnitude {
-        sign == .negative ? negated : self
+        sign == .minus ? negated : self
     }
 
     public init?<T: BinaryInteger>(exactly source: T) {
@@ -65,11 +65,11 @@ extension Decimal.Format32: @retroactive ExpressibleByIntegerLiteral {
             return
         }
 
-        let sign: Decimal.Sign = value < 0 ? .negative : .positive
+        let sign: FloatingPointSign = value < 0 ? .minus : .plus
         let magnitude = value < 0 ? UInt32(bitPattern: -value) : UInt32(value)
 
         let biasedExponent: UInt32 = 101
-        let signBit: UInt32 = sign == .negative ? 0x8000_0000 : 0
+        let signBit: UInt32 = sign == .minus ? 0x8000_0000 : 0
 
         self.init(bits: signBit | (biasedExponent << 23) | magnitude)
     }
@@ -91,7 +91,7 @@ extension Decimal.Format32: @retroactive Swift::Numeric {
     public typealias Magnitude = Self
 
     public var magnitude: Magnitude {
-        sign == .negative ? negated : self
+        sign == .minus ? negated : self
     }
 
     public init?<T: BinaryInteger>(exactly source: T) {
@@ -127,11 +127,11 @@ extension Decimal.Format128: @retroactive ExpressibleByIntegerLiteral {
             return
         }
 
-        let sign: Decimal.Sign = value < 0 ? .negative : .positive
+        let sign: FloatingPointSign = value < 0 ? .minus : .plus
         let magnitude = value < 0 ? UInt64(bitPattern: -value) : UInt64(value)
 
         let biasedExponent: UInt64 = 6176
-        let signBit: UInt64 = sign == .negative ? 0x8000_0000_0000_0000 : 0
+        let signBit: UInt64 = sign == .minus ? 0x8000_0000_0000_0000 : 0
 
         self.init(high: signBit | (biasedExponent << 49), low: magnitude)
     }
@@ -153,7 +153,7 @@ extension Decimal.Format128: @retroactive Swift::Numeric {
     public typealias Magnitude = Self
 
     public var magnitude: Magnitude {
-        sign == .negative ? negated : self
+        sign == .minus ? negated : self
     }
 
     public init?<T: BinaryInteger>(exactly source: T) {
