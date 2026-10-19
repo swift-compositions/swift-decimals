@@ -1,7 +1,15 @@
 extension Decimal.Format64: @retroactive ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int64) {
-
-        self.init(value)!
+        let sign: Decimal.Sign = value < 0 ? .negative : .positive
+        let context = Decimal.Context.format64
+        let (coefficient, exponent, _) = Decimals.Rounding.round(
+            coefficient: UInt128(value.magnitude),
+            exponent: Decimal.Exponent(0),
+            sign: sign,
+            rounding: context.rounding,
+            precision: context.precision
+        )
+        self = .encode(sign: sign, exponent: exponent, coefficient: coefficient)
     }
 }
 
