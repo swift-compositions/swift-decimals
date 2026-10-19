@@ -70,8 +70,7 @@ extension Decimal.Format128.Test {
             #expect(value.test.negative)
         }
 
-        @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws
-        {
+        @Test func `parse rounds over precision coefficient instead of corrupting encoding`() throws {
 
             let value = try Decimal.Format128.text(
                 [UInt8]((String(repeating: "1", count: 34) + "7").utf8)

@@ -52,8 +52,7 @@ extension Decimal.Format32.Test {
             )
         }
 
-        @Test func `divide does not double-round an exact-looking tie that is actually above half`()
-        {
+        @Test func `divide does not double-round an exact-looking tie that is actually above half`() {
 
             var context = Decimal.Context.format32
             context.rounding = .toward
